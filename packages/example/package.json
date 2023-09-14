@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "esbuild --bundle --platform=node --outdir=dist src/index.ts",
+    "dev": "pnpm run build --watch --sourcemap --serve --servedir=dist"
+  },
+  "dependencies": {
+    "@canvaskit-tilemap/core": "workspace:~"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@canvaskit-tilemap/core",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "esbuild --bundle --platform=node --outdir=dist src/index.ts",
+    "dev": "pnpm run build --watch --sourcemap --serve --servedir=dist"
+  },
+  "dependencies": {
+    "canvaskit-wasm": "^0.38.2",
+    "rxjs": "^7.8.1"
+  }
+}
