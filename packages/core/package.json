@@ -7,7 +7,9 @@
     "dev": "pnpm run build --watch --sourcemap --serve --servedir=dist"
   },
   "dependencies": {
+    "@use-gesture/vanilla": "^10.2.27",
     "canvaskit-wasm": "^0.38.2",
+    "popmotion": "^11.0.5",
     "rxjs": "^7.8.1"
   }
 }

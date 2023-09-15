@@ -5,6 +5,7 @@ import init, {
   Surface,
 } from "canvaskit-wasm";
 import { debounceTime, Observable } from "rxjs";
+import { TilemapGesture } from "./gesture";
 import { Layer } from "./layer";
 import { TileLayer } from "./tile-layer";
 
@@ -42,8 +43,12 @@ export class Tilemap {
   options: TilemapOptions;
   element: HTMLElement;
   canvasElement: HTMLCanvasElement;
+  /**
+   * constructor 里调用 resize 时初始化
+   */
   surface = null as unknown as Surface;
   context: GrDirectContext;
+  gesture: TilemapGesture;
   offset = [0, 0];
   scale = 0;
   minZoom = 0;
@@ -65,11 +70,13 @@ export class Tilemap {
     }
     this.element.style.touchAction = "none";
     this.canvasElement = document.createElement("canvas");
+    this.canvasElement.style.position = "absolute";
     this.context = canvaskit.MakeWebGLContext(
       canvaskit.GetWebGLContext(this.canvasElement)
     )!;
     this.element.appendChild(this.canvasElement);
 
+    this.gesture = new TilemapGesture(this);
     this.initResizeObserver();
     this.resize([this.element.clientWidth, this.element.clientHeight]);
     this.drawFrame();
@@ -79,7 +86,7 @@ export class Tilemap {
     const observable = new Observable<[number, number]>((subscriber) => {
       new ResizeObserver(([entry]) => {
         const { width, height } = entry.contentRect;
-        subscriber.next([width, height]);
+        subscriber.next([Math.floor(width), Math.floor(height)]);
       }).observe(this.element);
     });
     observable.pipe(debounceTime(500)).subscribe((size) => {
@@ -113,7 +120,7 @@ export class Tilemap {
       this.minZoom = minZoom;
     } else if (this.minZoom != minZoom) {
       this.minZoom = minZoom;
-      // this.gesture.scaleTo(this.scale, [this.size[0] / 2, this.size[1] / 2]);
+      this.scaleTo(this.scale, [this.size[0] / 2, this.size[1] / 2]);
     }
     this.draw();
   }
@@ -127,9 +134,11 @@ export class Tilemap {
   private drawFrame() {
     if (this.dirty) {
       const canvas = this.surface.getCanvas();
+      // 重置 matrix
       canvas.concat(canvaskit.Matrix.invert(canvas.getTotalMatrix())!);
-      canvas.translate(-this.offset[0], -this.offset[1]);
+      // 因为 scale 有原点，必须先 scale 后 translate
       canvas.scale(devicePixelRatio, devicePixelRatio);
+      canvas.translate(-this.offset[0], -this.offset[1]);
       const layers = [...this.layers];
       layers.sort((a, b) => a.zIndex - b.zIndex);
       for (const layer of layers) {
@@ -143,5 +152,35 @@ export class Tilemap {
 
   draw() {
     this.dirty = true;
+  }
+
+  newScale(newScale: number) {
+    const { minZoom, options } = this;
+    let zoom = Math.log2(newScale);
+    zoom = Math.max(Math.min(zoom, options.maxZoom!), minZoom);
+    return 2 ** zoom;
+  }
+
+  scaleTo(newScale: number, origin: [number, number]) {
+    const { offset, scale } = this;
+    newScale = this.newScale(newScale);
+    const ratio = (newScale - scale) / scale;
+    this.scale = newScale;
+    this.setOffset([
+      offset[0] + (origin[0] + offset[0]) * ratio,
+      offset[1] + (origin[1] + offset[1]) * ratio,
+    ]);
+  }
+
+  setOffset(newOffset: [number, number]) {
+    const { size, options, offset, scale } = this;
+    const max = [
+      options.mapSize[0] * scale - size[0],
+      options.mapSize[1] * scale - size[1],
+    ];
+    offset[0] = Math.max(Math.min(newOffset[0], max[0]), 0);
+    offset[1] = Math.max(Math.min(newOffset[1], max[1]), 0);
+    this.draw();
+    this.options.onMove?.();
   }
 }

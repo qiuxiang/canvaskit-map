@@ -31,7 +31,7 @@ export class TileLayer extends Layer {
   options: TileLayerOptions;
   images = {} as Record<string, Image>;
   paint = new canvaskit.Paint();
-  taskStack = new TaskStack();
+  taskQueue = new TaskQueue();
 
   constructor(options: TileLayerOptions) {
     super(options.zIndex ?? 0);
@@ -42,14 +42,18 @@ export class TileLayer extends Layer {
     };
   }
 
-  async resolveImage(url: string) {
-    this.taskStack.run(async () => {
-      if (!this.images[url]) {
-        const response = await fetch(url);
-        const bytes = await response.arrayBuffer();
-        const image = canvaskit.MakeImageFromEncoded(bytes)!;
-        this.images[url] = image;
-        this.tilemap.draw();
+  async resolveImage(url: string, key: string) {
+    this.taskQueue.run(async () => {
+      if (!this.images[key]) {
+        try {
+          const response = await fetch(url, {
+            headers: { accept: "image/webp" },
+          });
+          const bitmap = await createImageBitmap(await response.blob());
+          const image = canvaskit.MakeImageFromCanvasImageSource(bitmap)!;
+          this.images[key] = image;
+          this.tilemap.draw();
+        } catch (e) {}
       }
     });
   }
@@ -69,13 +73,12 @@ export class TileLayer extends Layer {
   drawTiles(canvas: Canvas, zoom: number) {
     const { size, scale, offset } = this.tilemap;
     const level = this.options.maxZoom - zoom;
-    const tileSize = this.options.tileSize! * Math.pow(2, level);
+    const tileSize = this.options.tileSize! * 2 ** level;
     const tileOffset = [
       this.options.offset![0] / tileSize,
       this.options.offset![1] / tileSize,
     ];
     const scaledTileSize = tileSize * scale;
-    console.log(tileSize, scaledTileSize);
     const start = [
       Math.floor(offset[0] / scaledTileSize + tileOffset[0]),
       Math.floor(offset[1] / scaledTileSize + tileOffset[1]),
@@ -84,10 +87,13 @@ export class TileLayer extends Layer {
       safeCeil((size[0] + offset[0]) / scaledTileSize + tileOffset[0]),
       safeCeil((size[1] + offset[1]) / scaledTileSize + tileOffset[1]),
     ];
+    // console.log(offset, scale);
+    // console.log(start, end);
     for (let y = start[1]; y < end[1]; y += 1) {
       for (let x = start[0]; x < end[0]; x += 1) {
         const url = this.options.getTileUrl(x, y, zoom);
-        const image = this.images[url];
+        const key = `${x},${y},${zoom}`;
+        const image = this.images[key];
         if (image) {
           const src = makeRect(0, 0, image.width(), image.height());
           const dst = makeRect(
@@ -98,25 +104,47 @@ export class TileLayer extends Layer {
           );
           canvas.drawImageRect(image, src, dst, this.paint);
         } else {
-          this.resolveImage(url);
+          this.resolveImage(url, key);
         }
       }
     }
   }
 }
 
-class TaskStack {
-  stack = [] as (() => Promise<void>)[];
-  running = false;
+type Task = () => Promise<void>;
 
-  async run(task: () => Promise<void>) {
-    this.stack.push(task);
+class TaskQueue {
+  length = 16;
+  queue = [] as Task[];
+  running = false;
+  count = 0;
+
+  async run(task: Task) {
+    this.push(task);
     if (!this.running) {
       this.running = true;
-      while (this.stack.length > 0) {
-        await this.stack.pop()?.();
+      while (this.queue.length > 0) {
+        const task = this.queue.pop();
+        if (task) {
+          await task();
+        } else {
+          this.queue = [];
+        }
       }
       this.running = false;
     }
+  }
+
+  push(task: Task) {
+    this.queue[this.count % this.length] = task;
+    this.count += 1;
+  }
+
+  pop(): Task | undefined {
+    const index = this.count % this.length;
+    const task = this.queue[index];
+    delete this.queue[index];
+    this.count -= 1;
+    return task;
   }
 }

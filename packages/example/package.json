@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "esbuild --bundle --platform=node --outdir=dist src/index.ts",
+    "build": "esbuild --bundle --external:fs --external:path --outdir=dist src/index.ts",
     "dev": "pnpm run build --watch --sourcemap --serve --servedir=dist"
   },
   "dependencies": {
