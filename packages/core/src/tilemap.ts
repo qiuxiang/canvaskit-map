@@ -7,7 +7,6 @@ import init, {
 import { debounceTime, Observable } from "rxjs";
 import { TilemapGesture } from "./gesture";
 import { Layer } from "./layer";
-import { TileLayer } from "./tile-layer";
 
 export let canvaskit: CanvasKit;
 
@@ -125,7 +124,7 @@ export class Tilemap {
     this.draw();
   }
 
-  addLayer(layer: TileLayer) {
+  addLayer(layer: Layer) {
     layer.tilemap = this;
     this.layers.add(layer);
     this.draw();
@@ -182,5 +181,12 @@ export class Tilemap {
     offset[1] = Math.max(Math.min(newOffset[1], max[1]), 0);
     this.draw();
     this.options.onMove?.();
+  }
+
+  toOffset(x: number, y: number, scale?: number): [number, number] {
+    return [
+      (x + this.options.origin[0]) * (scale ?? this.scale),
+      (y + this.options.origin[1]) * (scale ?? this.scale),
+    ];
   }
 }
