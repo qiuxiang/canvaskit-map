@@ -31,11 +31,9 @@ export interface TilemapOptions {
   origin: [number, number];
 
   /**
-   * 默认 0
+   * 最大缩放级别，默认 0
    */
   maxZoom?: number;
-
-  onMove?: () => void;
 }
 
 export class Tilemap {
@@ -130,6 +128,11 @@ export class Tilemap {
     this.draw();
   }
 
+  removeLayer(layer: Layer) {
+    this.layers.delete(layer);
+    this.draw();
+  }
+
   private drawFrame() {
     if (this.dirty) {
       const canvas = this.surface.getCanvas();
@@ -180,7 +183,6 @@ export class Tilemap {
     offset[0] = Math.max(Math.min(newOffset[0], max[0]), 0);
     offset[1] = Math.max(Math.min(newOffset[1], max[1]), 0);
     this.draw();
-    this.options.onMove?.();
   }
 
   toOffset(x: number, y: number, scale?: number): [number, number] {

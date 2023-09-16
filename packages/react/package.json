@@ -1,0 +1,15 @@
+{
+  "name": "@canvaskit-tilemap/react",
+  "version": "0.0.1",
+  "main": "src",
+  "dependencies": {
+    "@canvaskit-tilemap/core": "workspace:~",
+    "html-to-image": "^1.11.11"
+  },
+  "peerDependencies": {
+    "react": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.21"
+  }
+}

@@ -1,11 +1,7 @@
 {
   "name": "@canvaskit-tilemap/core",
   "version": "0.0.1",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "esbuild --bundle --platform=node --outdir=dist src/index.ts",
-    "dev": "pnpm run build --watch --sourcemap --serve --servedir=dist"
-  },
+  "main": "src",
   "dependencies": {
     "@use-gesture/vanilla": "^10.2.27",
     "canvaskit-wasm": "^0.38.2",

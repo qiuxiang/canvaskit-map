@@ -3,7 +3,7 @@ import { canvaskit } from ".";
 import { Layer, LayerOptions } from "./layer";
 import { makeRect, safeCeil } from "./utils";
 
-interface TileLayerOptions extends LayerOptions {
+export interface TileLayerOptions extends LayerOptions {
   /**
    * 默认 256
    */
