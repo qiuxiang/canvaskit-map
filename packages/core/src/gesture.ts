@@ -41,6 +41,7 @@ export class TilemapGesture {
   scaleAnimation = inertia({});
   offsetAnimation = [inertia({}), inertia({})];
   velocity = [new Average(), new Average()];
+  wheelVelocity = new Average();
   velocityScale = new Average();
 
   constructor(map: Tilemap) {
@@ -57,17 +58,27 @@ export class TilemapGesture {
     });
   }
 
-  onWheel({ direction, event, delta, timeStamp }: FullGestureState<"wheel">) {
+  onWheel({
+    direction,
+    event,
+    timeStamp,
+    velocity,
+    first,
+  }: FullGestureState<"wheel">) {
     if (timeStamp == this.lastWheelTime) return;
+    if (first) {
+      this.wheelVelocity.clear();
+    }
 
     this.offsetAnimation[0]?.stop();
     this.offsetAnimation[1]?.stop();
     this.scaleAnimation?.stop();
     this.lastWheelTime = timeStamp;
     const lastScale = this.tilemap.scale;
+    this.wheelVelocity.add(velocity[1]);
+    const v = Math.max(this.wheelVelocity.value, 0.1);
     this.scaleAnimation = inertia({
-      velocity: Math.log2(1 + Math.abs(delta[1]) / 200) / 2,
-      power: 2,
+      velocity: Math.log2(1 + Math.abs(v) / 10),
       timeConstant: 50,
       restDelta: 0.001,
       onUpdate: (value) => {

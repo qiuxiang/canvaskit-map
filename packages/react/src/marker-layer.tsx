@@ -1,7 +1,7 @@
 import * as core from "@canvaskit-tilemap/core";
-import { ReactElement, ReactNode, useContext, useEffect, useRef } from "react";
-import { TilemapContext } from "./tilemap";
 import { toCanvas } from "html-to-image";
+import { ReactNode, useContext, useEffect, useRef } from "react";
+import { TilemapContext } from "./tilemap";
 
 export interface MarkerLayerProps
   extends Omit<core.MarkerLayerOptions, "image"> {

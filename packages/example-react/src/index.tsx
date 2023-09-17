@@ -1,12 +1,12 @@
-import { createRoot } from "react-dom/client";
+import { api, Marker } from "@canvaskit-tilemap/example";
 import {
   initCanvaskit,
-  Tilemap,
-  TileLayer,
   MarkerLayer,
+  TileLayer,
+  Tilemap,
 } from "@canvaskit-tilemap/react";
 import { useEffect, useState } from "react";
-import { api, Marker } from "@canvaskit-tilemap/example";
+import { createRoot } from "react-dom/client";
 
 function Main() {
   const [loading, setLoading] = useState(true);
@@ -26,7 +26,6 @@ function Main() {
     return null;
   }
 
-  console.log(markers);
   const tileOffset: [number, number] = [-5888, -2048];
   return (
     <Tilemap
@@ -50,7 +49,7 @@ function Main() {
             scale={1 / devicePixelRatio}
             className="p-1"
           >
-            <div className="w-6 h-6 shadow flex justify-center items-center rounded-full border border-solid border-white bg-gray-700">
+            <div className="w-6 h-6 shadow shadow-black flex justify-center items-center rounded-full border border-solid border-white bg-gray-700">
               <img
                 className="w-11/12 h-11/12 object-cover"
                 src={i.icon}
