@@ -12,7 +12,6 @@
   "devDependencies": {
     "@unocss/cli": "^0.55.7",
     "@vitejs/plugin-vue": "^4.3.4",
-    "@vitejs/plugin-vue-jsx": "^3.0.2",
     "unocss": "^0.55.7"
   }
 }

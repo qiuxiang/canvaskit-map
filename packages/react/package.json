@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build && tsc",
-    "dev": "tsc -w"
+    "dev": "vite build -w --emptyOutDir false"
   },
   "dependencies": {
     "@canvaskit-tilemap/core": "workspace:~",
