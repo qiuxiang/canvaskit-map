@@ -14,12 +14,7 @@ export function Tilemap({ className, ...props }: TilemapProps) {
   const element = useRef<HTMLDivElement>(null);
   const [tilemap, setTilemap] = useState<core.Tilemap>();
   useEffect(() => {
-    setTilemap(
-      new core.Tilemap({
-        element: element.current!,
-        ...props,
-      })
-    );
+    setTilemap(new core.Tilemap({ element: element.current!, ...props }));
   }, []);
   return (
     <div ref={element} className={className}>

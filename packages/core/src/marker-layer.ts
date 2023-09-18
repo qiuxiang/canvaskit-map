@@ -11,7 +11,7 @@ export interface MarkerItem {
 export interface MarkerLayerOptions extends LayerOptions {
   items: MarkerItem[];
   image: CanvasImageSource;
-  scale: number;
+  scale?: number;
 }
 
 export class MarkerLayer extends Layer {
@@ -21,7 +21,7 @@ export class MarkerLayer extends Layer {
 
   constructor(options: MarkerLayerOptions) {
     super(options.zIndex ?? 0);
-    this.options = { ...options };
+    this.options = { ...options, scale: options.scale ?? 1 / devicePixelRatio };
     this.image = canvaskit.MakeImageFromCanvasImageSource(options.image);
   }
 
@@ -41,7 +41,7 @@ export class MarkerLayer extends Layer {
       rects[i + 1] = 0;
       rects[i + 2] = width;
       rects[i + 3] = height;
-      const xform = makeRSXform(scale, anchor, offset);
+      const xform = makeRSXform(scale!, anchor, offset);
       xforms[i] = xform[0];
       xforms[i + 1] = xform[1];
       xforms[i + 2] = xform[2];
