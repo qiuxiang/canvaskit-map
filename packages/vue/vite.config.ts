@@ -1,11 +1,13 @@
+import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 // @ts-ignore
 import { dependencies, peerDependencies } from "./package.json";
 
 export default defineConfig({
+  plugins: [vue()],
   build: {
     lib: {
-      entry: "src",
+      entry: "src/index.ts",
       formats: ["es"],
       fileName: "index",
     },
@@ -15,9 +17,5 @@ export default defineConfig({
         ...Object.keys(peerDependencies),
       ],
     },
-  },
-  esbuild: {
-    jsxInject: "import { createElement as h } from 'react'",
-    jsxFactory: "h",
   },
 });

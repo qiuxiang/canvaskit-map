@@ -1,4 +1,4 @@
 export { initCanvaskit } from "@canvaskit-tilemap/core";
-export * from "./marker-layer";
-export * from "./tile-layer";
-export * from "./tilemap";
+export { default as MarkerLayer } from "./MarkerLayer.vue";
+export { default as TileLayer } from "./TileLayer.vue";
+export { default as Tilemap } from "./Tilemap.vue";

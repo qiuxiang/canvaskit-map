@@ -48,6 +48,7 @@ export class TileLayer extends Layer {
         try {
           const response = await fetch(url, {
             headers: { accept: "image/webp" },
+            credentials: "omit",
           });
           const bitmap = await createImageBitmap(await response.blob());
           const image = canvaskit.MakeImageFromCanvasImageSource(bitmap)!;
@@ -59,11 +60,11 @@ export class TileLayer extends Layer {
   }
 
   draw(canvas: Canvas): void {
-    if (this.tilemap._scale == 0) return;
+    if (this.tilemap.scale == 0) return;
 
     const { minZoom, maxZoom } = this.options;
     this.drawTiles(canvas, minZoom);
-    let zoom = maxZoom + Math.floor(Math.log2(this.tilemap._scale));
+    let zoom = maxZoom + Math.floor(Math.log2(this.tilemap.scale));
     zoom = Math.min(Math.max(zoom, minZoom), maxZoom);
     if (zoom > minZoom) {
       this.drawTiles(canvas, zoom);
@@ -71,7 +72,7 @@ export class TileLayer extends Layer {
   }
 
   drawTiles(canvas: Canvas, zoom: number) {
-    const { _size: size, _scale: scale, _offset: offset } = this.tilemap;
+    const { size, scale, offset } = this.tilemap;
     const level = this.options.maxZoom - zoom;
     const tileSize = this.options.tileSize! * 2 ** level;
     const tileOffset = [
@@ -87,8 +88,6 @@ export class TileLayer extends Layer {
       safeCeil((size[0] + offset[0]) / scaledTileSize + tileOffset[0]),
       safeCeil((size[1] + offset[1]) / scaledTileSize + tileOffset[1]),
     ];
-    // console.log(offset, scale);
-    // console.log(start, end);
     for (let y = start[1]; y < end[1]; y += 1) {
       for (let x = start[0]; x < end[0]; x += 1) {
         const url = this.options.getTileUrl(x, y, zoom);

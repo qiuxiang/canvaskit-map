@@ -5,7 +5,7 @@
   "main": "dist",
   "scripts": {
     "build": "vite build && tsc",
-    "dev": "tsc -w"
+    "dev": "vite build -w --emptyOutDir false"
   },
   "dependencies": {
     "@use-gesture/vanilla": "^10.2.27",

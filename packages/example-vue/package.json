@@ -6,14 +6,13 @@
   "dependencies": {
     "@canvaskit-tilemap/example": "workspace:~",
     "@canvaskit-tilemap/vue": "workspace:~",
-    "canvaskit-wasm": "^0.38.2"
+    "canvaskit-wasm": "^0.38.2",
+    "vue": "^3.3.4"
   },
   "devDependencies": {
     "@unocss/cli": "^0.55.7",
     "@vitejs/plugin-vue": "^4.3.4",
     "@vitejs/plugin-vue-jsx": "^3.0.2",
-    "unocss": "^0.55.7",
-    "vite": "^4.4.9",
-    "vue": "^3.3.4"
+    "unocss": "^0.55.7"
   }
 }
