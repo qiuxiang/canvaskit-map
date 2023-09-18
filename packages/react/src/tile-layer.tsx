@@ -13,5 +13,5 @@ export function TileLayer(props: TileLayerProps) {
       tilemap.removeLayer(layer);
     };
   }, []);
-  return <></>;
+  return null;
 }
