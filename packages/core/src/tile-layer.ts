@@ -59,11 +59,11 @@ export class TileLayer extends Layer {
   }
 
   draw(canvas: Canvas): void {
-    if (this.tilemap.scale == 0) return;
+    if (this.tilemap._scale == 0) return;
 
     const { minZoom, maxZoom } = this.options;
     this.drawTiles(canvas, minZoom);
-    let zoom = maxZoom + Math.floor(Math.log2(this.tilemap.scale));
+    let zoom = maxZoom + Math.floor(Math.log2(this.tilemap._scale));
     zoom = Math.min(Math.max(zoom, minZoom), maxZoom);
     if (zoom > minZoom) {
       this.drawTiles(canvas, zoom);
@@ -71,7 +71,7 @@ export class TileLayer extends Layer {
   }
 
   drawTiles(canvas: Canvas, zoom: number) {
-    const { size, scale, offset } = this.tilemap;
+    const { _size: size, _scale: scale, _offset: offset } = this.tilemap;
     const level = this.options.maxZoom - zoom;
     const tileSize = this.options.tileSize! * 2 ** level;
     const tileOffset = [

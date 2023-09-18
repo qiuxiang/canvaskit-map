@@ -2,7 +2,10 @@
   "compilerOptions": {
     "strict": true,
     "target": "esnext",
-    "jsx": "react-jsx",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "emitDeclarationOnly": true,
+    "declaration": true
   }
 }

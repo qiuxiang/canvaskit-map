@@ -1,5 +1,7 @@
 {
   "devDependencies": {
-    "esbuild": "^0.19.2"
+    "esbuild": "^0.19.2",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9"
   }
 }

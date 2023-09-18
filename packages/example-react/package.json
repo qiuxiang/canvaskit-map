@@ -1,4 +1,7 @@
 {
+  "name": "@canvaskit-tilemap/example-react",
+  "version": "0.0.1",
+  "main": "src/main",
   "scripts": {
     "uno": "unocss -o dist/uno.css 'src/**/*.tsx' index.html",
     "esbuild": "esbuild --bundle --tsconfig=./tsconfig.json --minify --external:fs --external:path --outdir=dist src/index.tsx",

@@ -37,45 +37,44 @@ export interface TilemapOptions {
 }
 
 export class Tilemap {
-  options: TilemapOptions;
-  element: HTMLElement;
-  canvasElement: HTMLCanvasElement;
+  _options: TilemapOptions;
+  _element: HTMLElement;
+  _canvasElement: HTMLCanvasElement;
   /**
    * constructor 里调用 resize 时初始化
    */
-  surface = null as unknown as Surface;
-  context: GrDirectContext;
-  gesture: TilemapGesture;
-  offset = [0, 0];
-  scale = 0;
-  minZoom = 0;
-  size = [0, 0];
-  lastDrawTime = 0;
-  layers = new Set<Layer>();
-  private dirty = false;
+  _surface = null as unknown as Surface;
+  _context: GrDirectContext;
+  _gesture: TilemapGesture;
+  _offset = [0, 0];
+  _scale = 0;
+  _minZoom = 0;
+  _size = [0, 0];
+  _layers = new Set<Layer>();
+  _dirty = false;
 
   constructor(options: TilemapOptions) {
-    this.options = {
+    this._options = {
       ...options,
       maxZoom: options.maxZoom ?? 0,
     };
 
     if (typeof options.element == "string") {
-      this.element = document.querySelector(options.element)!;
+      this._element = document.querySelector(options.element)!;
     } else {
-      this.element = options.element;
+      this._element = options.element;
     }
-    this.element.style.touchAction = "none";
-    this.canvasElement = document.createElement("canvas");
-    this.canvasElement.style.position = "absolute";
-    this.context = canvaskit.MakeWebGLContext(
-      canvaskit.GetWebGLContext(this.canvasElement)
+    this._element.style.touchAction = "none";
+    this._canvasElement = document.createElement("canvas");
+    this._canvasElement.style.position = "absolute";
+    this._context = canvaskit.MakeWebGLContext(
+      canvaskit.GetWebGLContext(this._canvasElement)
     )!;
-    this.element.appendChild(this.canvasElement);
+    this._element.appendChild(this._canvasElement);
 
-    this.gesture = new TilemapGesture(this);
+    this._gesture = new TilemapGesture(this);
     this.initResizeObserver();
-    this.resize([this.element.clientWidth, this.element.clientHeight]);
+    this.resize([this._element.clientWidth, this._element.clientHeight]);
     this.drawFrame();
   }
 
@@ -84,7 +83,7 @@ export class Tilemap {
       new ResizeObserver(([entry]) => {
         const { width, height } = entry.contentRect;
         subscriber.next([Math.floor(width), Math.floor(height)]);
-      }).observe(this.element);
+      }).observe(this._element);
     });
     observable.pipe(debounceTime(500)).subscribe((size) => {
       this.resize(size);
@@ -92,82 +91,82 @@ export class Tilemap {
   }
 
   resize(size: [number, number]) {
-    if (this.size[0] == size[0] && this.size[1] == size[1]) {
+    if (this._size[0] == size[0] && this._size[1] == size[1]) {
       return;
     }
 
-    this.canvasElement.width = size[0] * devicePixelRatio;
-    this.canvasElement.height = size[1] * devicePixelRatio;
-    this.canvasElement.style.width = `${size[0]}px`;
-    this.canvasElement.style.height = `${size[1]}px`;
-    this.surface = canvaskit.MakeOnScreenGLSurface(
-      this.context,
+    this._canvasElement.width = size[0] * devicePixelRatio;
+    this._canvasElement.height = size[1] * devicePixelRatio;
+    this._canvasElement.style.width = `${size[0]}px`;
+    this._canvasElement.style.height = `${size[1]}px`;
+    this._surface = canvaskit.MakeOnScreenGLSurface(
+      this._context,
       size[0] * devicePixelRatio,
       size[1] * devicePixelRatio,
       canvaskit.ColorSpace.SRGB
     )!;
-    this.size = size;
+    this._size = size;
     const minScale = Math.max(
-      this.size[0] / this.options.mapSize[0],
-      this.size[1] / this.options.mapSize[1]
+      this._size[0] / this._options.mapSize[0],
+      this._size[1] / this._options.mapSize[1]
     );
     const minZoom = Math.log2(minScale);
-    if (this.minZoom == 0) {
-      this.scale = minScale;
-      this.minZoom = minZoom;
-    } else if (this.minZoom != minZoom) {
-      this.minZoom = minZoom;
-      this.scaleTo(this.scale, [this.size[0] / 2, this.size[1] / 2]);
+    if (this._minZoom == 0) {
+      this._scale = minScale;
+      this._minZoom = minZoom;
+    } else if (this._minZoom != minZoom) {
+      this._minZoom = minZoom;
+      this.scaleTo(this._scale, [this._size[0] / 2, this._size[1] / 2]);
     }
     this.draw();
   }
 
   addLayer(layer: Layer) {
     layer.tilemap = this;
-    this.layers.add(layer);
+    this._layers.add(layer);
     this.draw();
   }
 
   removeLayer(layer: Layer) {
-    this.layers.delete(layer);
+    this._layers.delete(layer);
     this.draw();
   }
 
   private drawFrame() {
-    if (this.dirty) {
-      const canvas = this.surface.getCanvas();
+    if (this._dirty) {
+      const canvas = this._surface.getCanvas();
       // 重置 matrix
       canvas.concat(canvaskit.Matrix.invert(canvas.getTotalMatrix())!);
       // 因为 scale 有原点，必须先 scale 后 translate
       canvas.scale(devicePixelRatio, devicePixelRatio);
-      canvas.translate(-this.offset[0], -this.offset[1]);
-      const layers = [...this.layers];
+      canvas.translate(-this._offset[0], -this._offset[1]);
+      const layers = [...this._layers];
       layers.sort((a, b) => a.zIndex - b.zIndex);
       for (const layer of layers) {
         layer.draw(canvas);
       }
-      this.surface.flush();
-      this.dirty = false;
+      this._surface.flush();
+      this._dirty = false;
     }
     requestAnimationFrame(() => this.drawFrame());
   }
 
   draw() {
-    this.dirty = true;
+    this._dirty = true;
   }
 
   newScale(newScale: number) {
-    const { minZoom, options } = this;
+    const { _minZoom: minZoom, _options: options } = this;
     let zoom = Math.log2(newScale);
     zoom = Math.max(Math.min(zoom, options.maxZoom!), minZoom);
     return 2 ** zoom;
   }
 
   scaleTo(newScale: number, origin: [number, number]) {
-    const { offset, scale } = this;
+    const { _offset: offset, _scale: scale } = this;
     newScale = this.newScale(newScale);
     const ratio = (newScale - scale) / scale;
-    this.scale = newScale;
+    this._scale = newScale;
     this.setOffset([
       offset[0] + (origin[0] + offset[0]) * ratio,
       offset[1] + (origin[1] + offset[1]) * ratio,
@@ -175,20 +174,20 @@ export class Tilemap {
   }
 
   setOffset(newOffset: [number, number]) {
-    const { size, options, offset, scale } = this;
+    const { _size, _options, _offset, _scale } = this;
     const max = [
-      options.mapSize[0] * scale - size[0],
-      options.mapSize[1] * scale - size[1],
+      _options.mapSize[0] * _scale - _size[0],
+      _options.mapSize[1] * _scale - _size[1],
     ];
-    offset[0] = Math.max(Math.min(newOffset[0], max[0]), 0);
-    offset[1] = Math.max(Math.min(newOffset[1], max[1]), 0);
+    _offset[0] = Math.max(Math.min(newOffset[0], max[0]), 0);
+    _offset[1] = Math.max(Math.min(newOffset[1], max[1]), 0);
     this.draw();
   }
 
   toOffset(x: number, y: number, scale?: number): [number, number] {
     return [
-      (x + this.options.origin[0]) * (scale ?? this.scale),
-      (y + this.options.origin[1]) * (scale ?? this.scale),
+      (x + this._options.origin[0]) * (scale ?? this._scale),
+      (y + this._options.origin[1]) * (scale ?? this._scale),
     ];
   }
 }

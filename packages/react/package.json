@@ -1,7 +1,12 @@
 {
   "name": "@canvaskit-tilemap/react",
   "version": "0.0.1",
-  "main": "src",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "build": "vite build && tsc",
+    "dev": "tsc -w"
+  },
   "dependencies": {
     "@canvaskit-tilemap/core": "workspace:~",
     "html-to-image": "^1.11.11"
