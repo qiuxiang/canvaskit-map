@@ -1,16 +1,12 @@
 {
   "name": "@canvaskit-tilemap/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist",
   "license": "MIT",
   "files": [
     "dist/"
   ],
-  "scripts": {
-    "build": "vite build && esbuild dist/index.js --mangle-props=^_ --minify --outdir=dist --allow-overwrite && tsc",
-    "dev": "vite build -w --emptyOutDir false"
-  },
   "dependencies": {
     "@use-gesture/vanilla": "^10.2.27",
     "canvaskit-wasm": "^0.38.2",
