@@ -3,8 +3,12 @@
   "version": "0.0.1",
   "type": "module",
   "main": "dist",
+  "license": "MIT",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
-    "build": "vite build && tsc",
+    "build": "vite build && esbuild dist/index.js --mangle-props=^_ --minify --outdir=dist --allow-overwrite && tsc",
     "dev": "vite build -w --emptyOutDir false"
   },
   "dependencies": {

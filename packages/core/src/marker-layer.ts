@@ -15,25 +15,31 @@ export interface MarkerLayerOptions extends LayerOptions {
 }
 
 export class MarkerLayer extends Layer {
-  options: MarkerLayerOptions;
-  paint = new canvaskit.Paint();
-  image: Image;
+  /** @internal */
+  _options: MarkerLayerOptions;
+  /** @internal */
+  _paint = new canvaskit.Paint();
+  /** @internal */
+  _image: Image;
 
   constructor(options: MarkerLayerOptions) {
     super(options.zIndex ?? 0);
-    this.options = { ...options, scale: options.scale ?? 1 / devicePixelRatio };
-    this.image = canvaskit.MakeImageFromCanvasImageSource(options.image);
+    this._options = {
+      ...options,
+      scale: options.scale ?? 1 / devicePixelRatio,
+    };
+    this._image = canvaskit.MakeImageFromCanvasImageSource(options.image);
   }
 
   draw(canvas: Canvas) {
-    const { scale, items } = this.options;
-    const width = this.image.width();
-    const height = this.image.height();
+    const { scale, items } = this._options;
+    const width = this._image.width();
+    const height = this._image.height();
     const anchor = alongSize([0, 0], [width, height]);
     let rects = [] as number[];
     let xforms = [] as number[];
     for (const item of items) {
-      const offset = this.tilemap.toOffset(item.x, item.y);
+      const offset = this.tilemap._toOffset(item.x, item.y);
 
       // 这里如果用 concat，在点非常多的时候性能会很糟糕
       const i = rects.length;
@@ -48,6 +54,6 @@ export class MarkerLayer extends Layer {
       xforms[i + 3] = xform[3];
     }
 
-    canvas.drawAtlas(this.image, rects, xforms, this.paint);
+    canvas.drawAtlas(this._image, rects, xforms, this._paint);
   }
 }

@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "@canvaskit-tilemap/example",
   "version": "0.0.1",
   "main": "src/api",

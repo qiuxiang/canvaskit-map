@@ -4,6 +4,8 @@ import { dependencies } from "./package.json";
 
 export default defineConfig({
   build: {
+    target: "esnext",
+    minify: false,
     lib: {
       entry: "src",
       formats: ["es"],
@@ -12,8 +14,5 @@ export default defineConfig({
     rollupOptions: {
       external: Object.keys(dependencies),
     },
-  },
-  esbuild: {
-    mangleProps: /^_/,
   },
 });

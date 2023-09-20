@@ -28,23 +28,28 @@ export interface TileLayerOptions extends LayerOptions {
 }
 
 export class TileLayer extends Layer {
-  options: TileLayerOptions;
-  images = {} as Record<string, Image>;
-  paint = new canvaskit.Paint();
-  taskQueue = new TaskQueue();
+  /** @internal */
+  _options: TileLayerOptions;
+  /** @internal */
+  _images = {} as Record<string, Image>;
+  /** @internal */
+  _paint = new canvaskit.Paint();
+  /** @internal */
+  _taskQueue = new TaskQueue();
 
   constructor(options: TileLayerOptions) {
     super(options.zIndex ?? 0);
-    this.options = {
+    this._options = {
       ...options,
       tileSize: options.tileSize ?? 256,
       offset: options.offset ?? [0, 0],
     };
   }
 
-  async resolveImage(url: string, key: string) {
-    this.taskQueue.run(async () => {
-      if (!this.images[key]) {
+  /** @internal */
+  async _resolveImage(url: string, key: string) {
+    this._taskQueue.run(async () => {
+      if (!this._images[key]) {
         try {
           const response = await fetch(url, {
             headers: { accept: "image/webp" },
@@ -52,7 +57,7 @@ export class TileLayer extends Layer {
           });
           const bitmap = await createImageBitmap(await response.blob());
           const image = canvaskit.MakeImageFromCanvasImageSource(bitmap)!;
-          this.images[key] = image;
+          this._images[key] = image;
           this.tilemap.draw();
         } catch (e) {}
       }
@@ -60,39 +65,40 @@ export class TileLayer extends Layer {
   }
 
   draw(canvas: Canvas): void {
-    if (this.tilemap.scale == 0) return;
+    if (this.tilemap._scale == 0) return;
 
-    const { minZoom, maxZoom } = this.options;
-    this.drawTiles(canvas, minZoom);
-    let zoom = maxZoom + Math.round(Math.log2(this.tilemap.scale));
+    const { minZoom, maxZoom } = this._options;
+    this._drawTiles(canvas, minZoom);
+    let zoom = maxZoom + Math.round(Math.log2(this.tilemap._scale));
     zoom = Math.min(Math.max(zoom, minZoom), maxZoom);
     if (zoom > minZoom) {
-      this.drawTiles(canvas, zoom);
+      this._drawTiles(canvas, zoom);
     }
   }
 
-  drawTiles(canvas: Canvas, zoom: number) {
-    const { size, scale, offset } = this.tilemap;
-    const level = this.options.maxZoom - zoom;
-    const tileSize = this.options.tileSize! * 2 ** level;
+  /** @internal */
+  _drawTiles(canvas: Canvas, zoom: number) {
+    const { _size, _scale, _offset } = this.tilemap;
+    const level = this._options.maxZoom - zoom;
+    const tileSize = this._options.tileSize! * 2 ** level;
     const tileOffset = [
-      this.options.offset![0] / tileSize,
-      this.options.offset![1] / tileSize,
+      this._options.offset![0] / tileSize,
+      this._options.offset![1] / tileSize,
     ];
-    const scaledTileSize = tileSize * scale;
+    const scaledTileSize = tileSize * _scale;
     const start = [
-      Math.floor(offset[0] / scaledTileSize + tileOffset[0]),
-      Math.floor(offset[1] / scaledTileSize + tileOffset[1]),
+      Math.floor(_offset[0] / scaledTileSize + tileOffset[0]),
+      Math.floor(_offset[1] / scaledTileSize + tileOffset[1]),
     ];
     const end = [
-      safeCeil((size[0] + offset[0]) / scaledTileSize + tileOffset[0]),
-      safeCeil((size[1] + offset[1]) / scaledTileSize + tileOffset[1]),
+      safeCeil((_size[0] + _offset[0]) / scaledTileSize + tileOffset[0]),
+      safeCeil((_size[1] + _offset[1]) / scaledTileSize + tileOffset[1]),
     ];
     for (let y = start[1]; y < end[1]; y += 1) {
       for (let x = start[0]; x < end[0]; x += 1) {
-        const url = this.options.getTileUrl(x, y, zoom);
+        const url = this._options.getTileUrl(x, y, zoom);
         const key = `${x},${y},${zoom}`;
-        const image = this.images[key];
+        const image = this._images[key];
         if (image) {
           const src = makeRect(0, 0, image.width(), image.height());
           const dst = makeRect(
@@ -101,9 +107,9 @@ export class TileLayer extends Layer {
             scaledTileSize,
             scaledTileSize
           );
-          canvas.drawImageRect(image, src, dst, this.paint);
+          canvas.drawImageRect(image, src, dst, this._paint);
         } else {
-          this.resolveImage(url, key);
+          this._resolveImage(url, key);
         }
       }
     }
@@ -113,37 +119,37 @@ export class TileLayer extends Layer {
 type Task = () => Promise<void>;
 
 class TaskQueue {
-  length = 16;
-  queue = [] as Task[];
-  running = false;
-  count = 0;
+  _length = 16;
+  _queue = [] as Task[];
+  _running = false;
+  _count = 0;
 
   async run(task: Task) {
-    this.push(task);
-    if (!this.running) {
-      this.running = true;
-      while (this.queue.length > 0) {
-        const task = this.queue.pop();
+    this._push(task);
+    if (!this._running) {
+      this._running = true;
+      while (this._queue.length > 0) {
+        const task = this._queue.pop();
         if (task) {
           await task();
         } else {
-          this.queue = [];
+          this._queue = [];
         }
       }
-      this.running = false;
+      this._running = false;
     }
   }
 
-  push(task: Task) {
-    this.queue[this.count % this.length] = task;
-    this.count += 1;
+  _push(task: Task) {
+    this._queue[this._count % this._length] = task;
+    this._count += 1;
   }
 
-  pop(): Task | undefined {
-    const index = this.count % this.length;
-    const task = this.queue[index];
-    delete this.queue[index];
-    this.count -= 1;
+  _pop(): Task | undefined {
+    const index = this._count % this._length;
+    const task = this._queue[index];
+    delete this._queue[index];
+    this._count -= 1;
     return task;
   }
 }

@@ -2,155 +2,128 @@ import { FullGestureState, Gesture } from "@use-gesture/vanilla";
 import { inertia } from "popmotion";
 import { Tilemap } from "./tilemap";
 
-export class Average {
-  count = 0;
-  length = 0;
-  values: number[] = [];
-
-  constructor(length = 3) {
-    this.length = length;
-  }
-
-  add(value: number) {
-    this.values[this.count % this.length] = value;
-    this.count += 1;
-  }
-
-  clear() {
-    this.values = Array(length);
-  }
-
-  get value() {
-    const values = this.values.filter((i) => i != undefined);
-    if (values.length == 0) {
-      return 0;
-    } else {
-      return values.reduce((value, i) => value + i, 0) / values.length;
-    }
-  }
-}
-
+/** @internal */
 export class TilemapGesture {
-  tilemap: Tilemap;
-  initialScale = 0;
-  lastPinchTime = 0;
-  lastWheelTime = 0;
-  lastClickTime = 0;
-  lastDragTime = 0;
+  _tilemap: Tilemap;
+  _initialScale = 0;
+  _lastPinchTime = 0;
+  _lastWheelTime = 0;
+  _lastClickTime = 0;
+  _lastDragTime = 0;
 
-  scaleAnimation = inertia({});
-  offsetAnimation = [inertia({}), inertia({})];
-  velocity = [new Average(), new Average()];
-  wheelVelocity = new Average();
-  velocityScale = new Average();
+  _scaleAnimation = inertia({});
+  _offsetAnimation = [inertia({}), inertia({})];
+  _velocity = [new Average(), new Average()];
+  _wheelVelocity = new Average();
+  _velocityScale = new Average();
 
-  constructor(map: Tilemap) {
-    this.tilemap = map;
-    new Gesture(this.tilemap._element, {
-      onWheel: this.onWheel.bind(this),
-      onPinchStart: () => (this.initialScale = this.tilemap.scale),
-      onPinch: this.onPinch.bind(this),
-      onPinchEnd: this.onPinchEnd.bind(this),
-      onDragStart: this.onDragStart.bind(this),
-      onDrag: this.onDrag.bind(this),
-      onDragEnd: this.onDragEnd.bind(this),
-      onClick: this.onClick.bind(this),
+  constructor(tilemap: Tilemap) {
+    this._tilemap = tilemap;
+    new Gesture(tilemap._element, {
+      onWheel: this._onWheel.bind(this),
+      onPinchStart: () => (this._initialScale = this._tilemap._scale),
+      onPinch: this._onPinch.bind(this),
+      onPinchEnd: this._onPinchEnd.bind(this),
+      onDragStart: this._onDragStart.bind(this),
+      onDrag: this._onDrag.bind(this),
+      onDragEnd: this._onDragEnd.bind(this),
+      onClick: this._onClick.bind(this),
     });
   }
 
-  onWheel({
+  _onWheel({
     direction,
     event,
     timeStamp,
     velocity,
     first,
   }: FullGestureState<"wheel">) {
-    if (timeStamp == this.lastWheelTime) return;
+    if (timeStamp == this._lastWheelTime) return;
     if (first) {
-      this.wheelVelocity.clear();
+      this._wheelVelocity.clear();
     }
 
-    this.offsetAnimation[0]?.stop();
-    this.offsetAnimation[1]?.stop();
-    this.scaleAnimation?.stop();
-    this.lastWheelTime = timeStamp;
-    const lastScale = this.tilemap.scale;
-    this.wheelVelocity.add(velocity[1]);
-    const v = Math.max(this.wheelVelocity.value, 0.1);
-    this.scaleAnimation = inertia({
+    this._offsetAnimation[0]?.stop();
+    this._offsetAnimation[1]?.stop();
+    this._scaleAnimation?.stop();
+    this._lastWheelTime = timeStamp;
+    const lastScale = this._tilemap._scale;
+    this._wheelVelocity.add(velocity[1]);
+    const v = Math.max(this._wheelVelocity.value, 0.1);
+    this._scaleAnimation = inertia({
       velocity: Math.log2(1 + Math.abs(v) / 10),
       timeConstant: 50,
       restDelta: 0.001,
       onUpdate: (value) => {
         const zoom = Math.log2(lastScale) - direction[1] * value;
-        this.tilemap.scaleTo(2 ** zoom, [event.x, event.y]);
+        this._tilemap._scaleTo(2 ** zoom, [event.x, event.y]);
       },
     });
   }
 
-  onPinch(state: FullGestureState<"pinch">) {
+  _onPinch(state: FullGestureState<"pinch">) {
     const { origin, da, initial, touches, timeStamp } = state;
     if (touches != 2) return;
 
-    this.lastPinchTime = timeStamp;
-    const newScale = (da[0] / initial[0]) * this.initialScale;
-    this.velocityScale.add(newScale - this.tilemap.scale);
-    this.tilemap.scaleTo(newScale, origin);
+    this._lastPinchTime = timeStamp;
+    const newScale = (da[0] / initial[0]) * this._initialScale;
+    this._velocityScale.add(newScale - this._tilemap._scale);
+    this._tilemap._scaleTo(newScale, origin);
   }
 
-  onPinchEnd({ origin }: FullGestureState<"pinch">) {
-    const value = this.velocityScale.value;
+  _onPinchEnd({ origin }: FullGestureState<"pinch">) {
+    const value = this._velocityScale.value;
     const direction = value > 0 ? -1 : 1;
-    this.initialScale = this.tilemap.scale;
-    const velocity = Math.log10(1 + Math.abs(this.velocityScale.value)) * 50;
-    this.scaleAnimation?.stop();
-    this.scaleAnimation = inertia({
+    this._initialScale = this._tilemap._scale;
+    const velocity = Math.log10(1 + Math.abs(this._velocityScale.value)) * 50;
+    this._scaleAnimation?.stop();
+    this._scaleAnimation = inertia({
       velocity: velocity,
       timeConstant: 50,
       restDelta: 0.001,
       onUpdate: (value) => {
-        const zoom = Math.log2(this.initialScale) - direction * value;
-        this.tilemap.scaleTo(2 ** zoom, origin);
+        const zoom = Math.log2(this._initialScale) - direction * value;
+        this._tilemap._scaleTo(2 ** zoom, origin);
       },
     });
   }
 
-  onDragStart() {
-    this.offsetAnimation[0]?.stop();
-    this.offsetAnimation[1]?.stop();
-    this.scaleAnimation?.stop();
-    this.velocity[0].clear();
-    this.velocity[1].clear();
+  _onDragStart() {
+    this._offsetAnimation[0]?.stop();
+    this._offsetAnimation[1]?.stop();
+    this._scaleAnimation?.stop();
+    this._velocity[0].clear();
+    this._velocity[1].clear();
   }
 
-  onDrag(state: FullGestureState<"drag">) {
+  _onDrag(state: FullGestureState<"drag">) {
     const { pinching, wheeling, timeStamp, velocity, delta } = state;
-    if (pinching || wheeling || timeStamp - this.lastPinchTime < 200) {
+    if (pinching || wheeling || timeStamp - this._lastPinchTime < 200) {
       return;
     }
 
-    this.velocity[0].add(velocity[0]);
-    this.velocity[1].add(velocity[1]);
-    this.tilemap.setOffset([
-      this.tilemap.offset[0] - delta[0],
-      this.tilemap.offset[1] - delta[1],
+    this._velocity[0].add(velocity[0]);
+    this._velocity[1].add(velocity[1]);
+    this._tilemap._setOffset([
+      this._tilemap._offset[0] - delta[0],
+      this._tilemap._offset[1] - delta[1],
     ]);
   }
 
-  async onDragEnd(state: FullGestureState<"drag">) {
+  async _onDragEnd(state: FullGestureState<"drag">) {
     const { direction, timeStamp, distance } = state;
-    if (timeStamp - this.lastPinchTime < 200) return;
+    if (timeStamp - this._lastPinchTime < 200) return;
 
-    const initialOffset = [...this.tilemap.offset];
-    const velocity = [this.velocity[0].value, this.velocity[1].value];
+    const initialOffset = [...this._tilemap._offset];
+    const velocity = [this._velocity[0].value, this._velocity[1].value];
     const v = Math.sqrt(velocity[0] ** 2 + velocity[1] ** 2);
     if (v != 0) {
-      this.offsetAnimation[0] = inertia({
+      this._offsetAnimation[0] = inertia({
         velocity: v,
         power: 200,
         timeConstant: 200,
         onUpdate: (value) => {
-          this.tilemap.setOffset([
+          this._tilemap._setOffset([
             initialOffset[0] - direction[0] * value * (velocity[0] / v),
             initialOffset[1] - direction[1] * value * (velocity[1] / v),
           ]);
@@ -158,38 +131,38 @@ export class TilemapGesture {
       });
     }
     if (distance[0] > 2 || distance[1] > 2) {
-      this.lastDragTime = timeStamp;
+      this._lastDragTime = timeStamp;
     }
   }
 
-  onClick({ event }: { event: MouseEvent }) {
-    if (event.timeStamp == this.lastDragTime) return;
+  _onClick({ event }: { event: MouseEvent }) {
+    if (event.timeStamp == this._lastDragTime) return;
 
     const doubleClickDelay = 200;
-    if (event.timeStamp - this.lastClickTime < doubleClickDelay) {
-      const lastScale = this.tilemap.scale;
-      this.scaleAnimation?.stop();
-      this.scaleAnimation = inertia({
+    if (event.timeStamp - this._lastClickTime < doubleClickDelay) {
+      const lastScale = this._tilemap._scale;
+      this._scaleAnimation?.stop();
+      this._scaleAnimation = inertia({
         velocity: 1,
         power: 1,
         timeConstant: 100,
         restDelta: 0.001,
         onUpdate: (value) => {
           const zoom = Math.log2(lastScale) + value;
-          this.tilemap.scaleTo(2 ** zoom, [event.x, event.y]);
+          this._tilemap._scaleTo(2 ** zoom, [event.x, event.y]);
         },
       });
     } else {
       setTimeout(() => {
-        if (event.timeStamp == this.lastClickTime) {
-          this.onClickTilemap([event.x, event.y]);
+        if (event.timeStamp == this._lastClickTime) {
+          this._onClickTilemap([event.x, event.y]);
         }
       }, doubleClickDelay);
     }
-    this.lastClickTime = event.timeStamp;
+    this._lastClickTime = event.timeStamp;
   }
 
-  onClickTilemap(position: [number, number]) {
+  _onClickTilemap(position: [number, number]) {
     // const result = this.map.findMarker(position);
     // if (result) {
     //   result?.[0].options.onClick?.(result[1]);
@@ -197,5 +170,33 @@ export class TilemapGesture {
     //   return;
     // }
     // this.map.options.onClick?.();
+  }
+}
+
+class Average {
+  _count = 0;
+  _length = 0;
+  _values: number[] = [];
+
+  constructor(length = 3) {
+    this._length = length;
+  }
+
+  add(value: number) {
+    this._values[this._count % this._length] = value;
+    this._count += 1;
+  }
+
+  clear() {
+    this._values = Array(length);
+  }
+
+  get value() {
+    const values = this._values.filter((i) => i != undefined);
+    if (values.length == 0) {
+      return 0;
+    } else {
+      return values.reduce((value, i) => value + i, 0) / values.length;
+    }
   }
 }

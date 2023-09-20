@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "main": "dist",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "vite build && tsc",
     "dev": "vite build -w --emptyOutDir false"

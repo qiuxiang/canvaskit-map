@@ -1,11 +1,14 @@
+/** @internal */
 export function safeCeil(n: number) {
   return Math.ceil(parseFloat(n.toFixed(3)));
 }
 
+/** @internal */
 export function makeRect(x: number, y: number, width: number, height: number) {
   return [x, y, x + width, y + height];
 }
 
+/** @internal */
 export function makeRSXform(
   scale: number,
   anchor: [number, number],
@@ -21,6 +24,7 @@ export function makeRSXform(
   ];
 }
 
+/** @internal */
 export function alongSize(
   align: [number, number],
   size: [number, number]

@@ -25,10 +25,7 @@ class KongYingApi {
   }
 
   async fetchMarkers(params: { areaIdList: number[]; typeIdList: number[] }) {
-    const items = await this.fetchItems({
-      areaIdList: [6, 17, 2, 3, 12, 13, 14, 19, 21, 22, 23, 28],
-      typeIdList: [5],
-    });
+    const items = await this.fetchItems(params);
     const allMarkers = await this.fetch("marker/get/list_byinfo", {
       itemIdList: items.map((i: any) => i.id),
     });
