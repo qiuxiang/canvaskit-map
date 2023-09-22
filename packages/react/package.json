@@ -3,13 +3,10 @@
   "version": "0.1.0",
   "main": "dist",
   "type": "module",
+  "license": "MIT",
   "files": [
     "dist"
   ],
-  "scripts": {
-    "build": "vite build && tsc",
-    "dev": "vite build -w --emptyOutDir false"
-  },
   "dependencies": {
     "@canvaskit-tilemap/core": "workspace:~",
     "html-to-image": "^1.11.11"

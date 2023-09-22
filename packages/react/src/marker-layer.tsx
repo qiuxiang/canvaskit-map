@@ -18,9 +18,11 @@ export function MarkerLayer({
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let layer: core.Layer | null = null;
-    toCanvas(element.current!).then((image) => {
-      layer = new core.MarkerLayer({ image, ...props });
-      tilemap.addLayer(layer);
+    toCanvas(element.current!).then(() => {
+      toCanvas(element.current!).then((image) => {
+        layer = new core.MarkerLayer({ image, ...props });
+        tilemap.addLayer(layer);
+      });
     });
     return () => {
       if (layer) {
