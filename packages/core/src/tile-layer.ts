@@ -69,7 +69,7 @@ export class TileLayer extends Layer {
 
     const { minZoom, maxZoom } = this._options;
     this._drawTiles(canvas, minZoom);
-    let zoom = maxZoom + Math.round(Math.log2(this.tilemap._scale));
+    let zoom = maxZoom + Math.ceil(Math.log2(this.tilemap._scale));
     zoom = Math.min(Math.max(zoom, minZoom), maxZoom);
     if (zoom > minZoom) {
       this._drawTiles(canvas, zoom);
