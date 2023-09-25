@@ -12,6 +12,7 @@ export interface MarkerLayerOptions extends LayerOptions {
   items: MarkerItem[];
   image: CanvasImageSource;
   scale?: number;
+  alignment?: [number, number];
 }
 
 export class MarkerLayer extends Layer {
@@ -27,21 +28,20 @@ export class MarkerLayer extends Layer {
     this._options = {
       ...options,
       scale: options.scale ?? 1 / devicePixelRatio,
+      alignment: options.alignment ?? [0, 0],
     };
     this._image = canvaskit.MakeImageFromCanvasImageSource(options.image);
   }
 
   draw(canvas: Canvas) {
-    const { scale, items } = this._options;
+    const { scale, items, alignment } = this._options;
     const width = this._image.width();
     const height = this._image.height();
-    const anchor = alongSize([0, 0], [width, height]);
+    const anchor = alongSize(alignment!, [width, height]);
     let rects = [] as number[];
     let xforms = [] as number[];
     for (const item of items) {
       const offset = this.tilemap._toOffset(item.x, item.y);
-
-      // 这里如果用 concat，在点非常多的时候性能会很糟糕
       const i = rects.length;
       rects[i] = 0;
       rects[i + 1] = 0;

@@ -1,5 +1,7 @@
 {
-  "author": "7c00 <i@7c00.cc>",
+  "publishConfig": {
+    "author": "7c00 <i@7c00.cc>"
+  },
   "scripts": {
     "core-build": "cd packages/core && esbuild build.ts --format=cjs | node && tsc",
     "core-dev": "cd packages/core && esbuild build.ts --format=cjs | node - dev",
