@@ -1,6 +1,7 @@
 {
   "name": "@canvaskit-tilemap/react",
-  "version": "0.2.0",
+  "version": "0.3.1",
+  "author": "7c00 <i@7c00.cc>",
   "main": "dist",
   "type": "module",
   "license": "MIT",

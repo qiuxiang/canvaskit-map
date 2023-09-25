@@ -1,6 +1,7 @@
 {
   "name": "@canvaskit-tilemap/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
+  "author": "7c00 <i@7c00.cc>",
   "type": "module",
   "main": "dist",
   "license": "MIT",

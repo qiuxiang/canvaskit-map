@@ -44,7 +44,7 @@ export function Main() {
       {markers.map((i) => {
         return (
           <MarkerLayer items={i.items} className="p-1">
-            <div className="w-6 h-6 shadow shadow-black flex justify-center items-center rounded-full border border-solid border-white bg-gray-700">
+            <div className="w-6 h-6 drop-shadow-sm flex justify-center items-center rounded-full border border-solid border-white bg-gray-700">
               <img
                 className="w-11/12 h-11/12 object-cover"
                 src={i.icon}

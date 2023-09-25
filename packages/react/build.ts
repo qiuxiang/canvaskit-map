@@ -18,13 +18,21 @@ async function main() {
   };
   if (dev) {
     let buildTime = 0;
-    watch("src").on("change", () => {
+    async function _build() {
       const now = Date.now();
       if (now - buildTime > 1000) {
-        build(options);
+        const { errors, warnings } = await build(options);
+        if (errors.length) {
+          console.error(errors);
+        }
+        if (warnings.length) {
+          console.error(warnings);
+        }
         buildTime = now;
       }
-    });
+    }
+    _build();
+    watch("src").on("change", _build);
   } else {
     await build(options);
     await build({

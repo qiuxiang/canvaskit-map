@@ -12,7 +12,7 @@ export interface MarkerLayerOptions extends LayerOptions {
   items: MarkerItem[];
   image: CanvasImageSource;
   scale?: number;
-  alignment?: [number, number];
+  anchor?: [number, number];
 }
 
 export class MarkerLayer extends Layer {
@@ -28,13 +28,13 @@ export class MarkerLayer extends Layer {
     this._options = {
       ...options,
       scale: options.scale ?? 1 / devicePixelRatio,
-      alignment: options.alignment ?? [0, 0],
+      anchor: options.anchor ?? [0, 0],
     };
     this._image = canvaskit.MakeImageFromCanvasImageSource(options.image);
   }
 
   draw(canvas: Canvas) {
-    const { scale, items, alignment } = this._options;
+    const { scale, items, anchor: alignment } = this._options;
     const width = this._image.width();
     const height = this._image.height();
     const anchor = alongSize(alignment!, [width, height]);
@@ -47,7 +47,7 @@ export class MarkerLayer extends Layer {
       rects[i + 1] = 0;
       rects[i + 2] = width;
       rects[i + 3] = height;
-      const xform = makeRSXform(scale!, anchor, offset);
+      const xform = makeRSXform(0, scale!, anchor, offset);
       xforms[i] = xform[0];
       xforms[i + 1] = xform[1];
       xforms[i + 2] = xform[2];

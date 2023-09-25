@@ -35,7 +35,7 @@ async function main() {
     const element = document.createElement("div");
     element.innerHTML = `
       <div class="marker">
-        <img src="${icon}" crossOrigin>
+        <img src="${icon}" cross-origin="">
       </div>
     `;
     $markers.append(element);
