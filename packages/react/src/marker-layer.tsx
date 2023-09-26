@@ -4,17 +4,20 @@ import { ReactNode, useContext, useEffect, useRef } from "react";
 import { TilemapContext } from "./tilemap";
 
 const isSafari = navigator.userAgent.indexOf("iPhone") != -1;
+const _cache = {} as Record<string, HTMLCanvasElement>;
 
 export interface MarkerLayerProps
   extends Omit<core.MarkerLayerOptions, "image"> {
   children?: ReactNode;
   className?: string;
+  cacheKey?: string;
 }
 
 export function MarkerLayer({
   children,
   className,
   scale,
+  cacheKey = "",
   ...props
 }: MarkerLayerProps) {
   const tilemap = useContext(TilemapContext)!;
@@ -32,13 +35,22 @@ export function MarkerLayer({
         scale = 1 / pixelRatio;
       }
     }
-    // safari 一次可能获取不到图片
-    toCanvas(element.current!).then(() => {
-      toCanvas(element.current!, { pixelRatio }).then((image) => {
-        layer = new core.MarkerLayer({ image, scale, ...props });
-        tilemap.addLayer(layer);
+    const cachedImage = _cache[cacheKey];
+    if (cachedImage) {
+      layer = new core.MarkerLayer({ image: cachedImage, scale, ...props });
+      tilemap.addLayer(layer);
+    } else {
+      // safari 一次可能获取不到图片
+      toCanvas(element.current!).then(() => {
+        toCanvas(element.current!, { pixelRatio }).then((image) => {
+          layer = new core.MarkerLayer({ image, scale, ...props });
+          tilemap.addLayer(layer);
+          if (cacheKey) {
+            _cache[cacheKey] = image;
+          }
+        });
       });
-    });
+    }
     return () => {
       if (layer) {
         tilemap.removeLayer(layer);
