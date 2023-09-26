@@ -12,4 +12,8 @@ export abstract class Layer {
   tilemap: Tilemap = null as unknown as Tilemap;
   constructor(public zIndex: number) {}
   abstract draw(canvas: Canvas): void;
+  initialized = false;
+  init() {
+    this.initialized = true;
+  }
 }

@@ -46,22 +46,50 @@ export class TileLayer extends Layer {
     };
   }
 
+  async init() {
+    let { maxZoom, minZoom, tileSize, offset, getTileUrl } = this._options;
+    const level = maxZoom - minZoom;
+    tileSize = tileSize! * Math.pow(2, level);
+    const offsetX = Math.floor(offset![0] / tileSize);
+    const offsetY = Math.floor(offset![1] / tileSize);
+    const cols = safeCeil(this.tilemap._options.mapSize[0] / tileSize);
+    const rows = safeCeil(this.tilemap._options.mapSize[1] / tileSize);
+    const promises = [] as Promise<void>[];
+    console.log(rows, cols);
+    for (var row = 0; row < rows; row += 1) {
+      for (var col = 0; col < cols; col += 1) {
+        const x = col + offsetX;
+        const y = row + offsetY;
+        console.log(`${x},${y},${minZoom}`);
+        promises.push(
+          this._fetchImage(getTileUrl(x, y, minZoom), `${x},${y},${minZoom}`)
+        );
+      }
+    }
+    await Promise.all(promises);
+    super.init();
+  }
+
   /** @internal */
   async _resolveImage(url: string, key: string) {
     this._taskQueue.run(async () => {
       if (!this._images[key]) {
         try {
-          const response = await fetch(url, {
-            headers: { accept: "image/webp" },
-            credentials: "omit",
-          });
-          const bitmap = await createImageBitmap(await response.blob());
-          const image = canvaskit.MakeImageFromCanvasImageSource(bitmap)!;
-          this._images[key] = image;
-          this.tilemap.draw();
+          await this._fetchImage(url, key);
         } catch (e) {}
       }
     });
+  }
+
+  async _fetchImage(url: string, key: string) {
+    const response = await fetch(url, {
+      headers: { accept: "image/webp" },
+      credentials: "omit",
+    });
+    const bitmap = await createImageBitmap(await response.blob());
+    const image = canvaskit.MakeImageFromCanvasImageSource(bitmap)!;
+    this._images[key] = image;
+    this.tilemap.draw();
   }
 
   draw(canvas: Canvas): void {
@@ -108,7 +136,7 @@ export class TileLayer extends Layer {
             scaledTileSize
           );
           canvas.drawImageRect(image, src, dst, this._paint);
-        } else {
+        } else if (this.initialized) {
           this._resolveImage(url, key);
         }
       }

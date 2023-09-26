@@ -20,19 +20,19 @@ export function MarkerLayer({
   const tilemap = useContext(TilemapContext)!;
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    let layer: core.Layer | null = null;
+    let layer: core.MarkerLayer | null = null;
     let pixelRatio = devicePixelRatio;
     if (!scale) {
       if (isSafari) {
         pixelRatio = 1;
         scale = 1 / devicePixelRatio;
       } else {
-        // 1:1 渲染不够锐，1.5 倍渲染 比较合适
+        // 1:1 渲染不够锐，1.5 倍渲染比较合适
         pixelRatio *= 1.5;
         scale = 1 / pixelRatio;
       }
     }
-    // safari 一次获取不到图片
+    // safari 一次可能获取不到图片
     toCanvas(element.current!).then(() => {
       toCanvas(element.current!, { pixelRatio }).then((image) => {
         layer = new core.MarkerLayer({ image, scale, ...props });

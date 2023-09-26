@@ -58,6 +58,8 @@ export class Tilemap {
   _layers = new Set<Layer>();
   /** @internal */
   _dirty = false;
+  /** @internal */
+  _initialized = false;
 
   /** @internal */
   _size = [0, 0];
@@ -129,6 +131,10 @@ export class Tilemap {
     if (this._minZoom == 0) {
       this._scale = minScale;
       this._minZoom = minZoom;
+      for (const layer of this._layers) {
+        layer.init();
+      }
+      this._initialized = true;
     } else if (this._minZoom != minZoom) {
       this._minZoom = minZoom;
       this._scaleTo(this._scale, [this._size[0] / 2, this._size[1] / 2]);
@@ -139,6 +145,9 @@ export class Tilemap {
   addLayer(layer: Layer) {
     layer.tilemap = this;
     this._layers.add(layer);
+    if (this._initialized) {
+      layer.init();
+    }
     this.draw();
   }
 
