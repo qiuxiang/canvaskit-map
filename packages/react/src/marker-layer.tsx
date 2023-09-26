@@ -25,6 +25,7 @@ export function MarkerLayer({
   const tilemap = useContext(TilemapContext)!;
   const element = useRef<HTMLDivElement>(null);
   let [layer, setLayer] = useState<core.MarkerLayer | null>(null);
+
   useEffect(() => {
     let pixelRatio = devicePixelRatio;
     if (!scale) {
@@ -37,31 +38,35 @@ export function MarkerLayer({
         scale = 1 / pixelRatio;
       }
     }
+
     const cachedImage = _cache[cacheKey];
     if (cachedImage) {
-      layer = new core.MarkerLayer({ image: cachedImage, scale, ...props });
-      tilemap.addLayer(layer);
+      createLayer(cachedImage);
     } else {
-      toCanvas(element.current!, { pixelRatio }).then((image) => {
-        layer = new core.MarkerLayer({ image, scale, ...props });
-        setLayer(layer);
-        tilemap.addLayer(layer);
-        if (hidden) {
-          tilemap.hideLayer(layer);
-        } else {
-          tilemap.showLayer(layer);
-        }
-        if (cacheKey) {
-          _cache[cacheKey] = image;
-        }
-      });
+      toCanvas(element.current!, { pixelRatio }).then(createLayer);
     }
+
+    function createLayer(image: HTMLCanvasElement) {
+      layer = new core.MarkerLayer({ image, scale, ...props });
+      setLayer(layer);
+      tilemap.addLayer(layer);
+      if (hidden) {
+        tilemap.hideLayer(layer);
+      } else {
+        tilemap.showLayer(layer);
+      }
+      if (cacheKey) {
+        _cache[cacheKey] = image;
+      }
+    }
+
     return () => {
       if (layer) {
         tilemap.removeLayer(layer);
       }
     };
   }, []);
+
   useEffect(() => {
     if (!layer) return;
     if (hidden) {
@@ -70,6 +75,7 @@ export function MarkerLayer({
       tilemap.showLayer(layer);
     }
   }, [hidden]);
+
   return (
     <div
       style={{
