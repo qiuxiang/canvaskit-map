@@ -55,12 +55,10 @@ export class TileLayer extends Layer {
     const cols = safeCeil(this.tilemap._options.mapSize[0] / tileSize);
     const rows = safeCeil(this.tilemap._options.mapSize[1] / tileSize);
     const promises = [] as Promise<void>[];
-    console.log(rows, cols);
     for (var row = 0; row < rows; row += 1) {
       for (var col = 0; col < cols; col += 1) {
         const x = col + offsetX;
         const y = row + offsetY;
-        console.log(`${x},${y},${minZoom}`);
         promises.push(
           this._fetchImage(getTileUrl(x, y, minZoom), `${x},${y},${minZoom}`)
         );

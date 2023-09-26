@@ -34,6 +34,8 @@ export interface TilemapOptions {
    * 最大缩放级别，默认 0
    */
   maxZoom?: number;
+
+  onMove?: () => {};
 }
 
 export class Tilemap {
@@ -182,32 +184,27 @@ export class Tilemap {
 
   /** @internal */
   _newScale(newScale: number) {
-    const { _minZoom: minZoom, _options: options } = this;
+    const { _minZoom, _options } = this;
     let zoom = Math.log2(newScale);
-    zoom = Math.max(Math.min(zoom, options.maxZoom!), minZoom);
+    zoom = Math.max(Math.min(zoom, _options.maxZoom!), _minZoom);
     return 2 ** zoom;
   }
 
   /** @internal */
   _scaleTo(newScale: number, origin: [number, number]) {
-    const { _offset: offset, _scale: scale } = this;
+    const { _offset, _scale } = this;
     newScale = this._newScale(newScale);
-    const ratio = (newScale - scale) / scale;
+    const ratio = (newScale - _scale) / _scale;
     this._scale = newScale;
     this._setOffset([
-      offset[0] + (origin[0] + offset[0]) * ratio,
-      offset[1] + (origin[1] + offset[1]) * ratio,
+      _offset[0] + (origin[0] + _offset[0]) * ratio,
+      _offset[1] + (origin[1] + _offset[1]) * ratio,
     ]);
   }
 
   /** @internal */
   _setOffset(newOffset: [number, number]) {
-    const {
-      _size: _size,
-      _options: _options,
-      _offset: _offset,
-      _scale: _scale,
-    } = this;
+    const { _size, _options, _offset, _scale } = this;
     const max = [
       _options.mapSize[0] * _scale - _size[0],
       _options.mapSize[1] * _scale - _size[1],
@@ -215,6 +212,7 @@ export class Tilemap {
     _offset[0] = Math.max(Math.min(newOffset[0], max[0]), 0);
     _offset[1] = Math.max(Math.min(newOffset[1], max[1]), 0);
     this.draw();
+    this._options.onMove?.();
   }
 
   /** @internal */
@@ -223,5 +221,13 @@ export class Tilemap {
       (x + this._options.origin[0]) * (scale ?? this._scale),
       (y + this._options.origin[1]) * (scale ?? this._scale),
     ];
+  }
+
+  get zoom() {
+    return Math.log2(this._scale);
+  }
+
+  get offset() {
+    return this._offset;
   }
 }
