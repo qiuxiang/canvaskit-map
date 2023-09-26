@@ -36,6 +36,7 @@ export interface TilemapOptions {
   maxZoom?: number;
 
   onMove?: () => {};
+  onReady?: (tilemap: Tilemap) => {};
 }
 
 export class Tilemap {
@@ -58,6 +59,8 @@ export class Tilemap {
   _minZoom = 0;
   /** @internal */
   _layers = new Set<Layer>();
+  /** @internal */
+  _hiddenLayers = new Set<Layer>();
   /** @internal */
   _dirty = false;
   /** @internal */
@@ -137,6 +140,7 @@ export class Tilemap {
         layer.init();
       }
       this._initialized = true;
+      this._options.onReady?.(this);
     } else if (this._minZoom != minZoom) {
       this._minZoom = minZoom;
       this._scaleTo(this._scale, [this._size[0] / 2, this._size[1] / 2]);
@@ -158,6 +162,14 @@ export class Tilemap {
     this.draw();
   }
 
+  hideLayer(layer: Layer) {
+    this._hiddenLayers.add(layer);
+  }
+
+  showLayer(layer: Layer) {
+    this._hiddenLayers.delete(layer);
+  }
+
   /** @internal */
   _drawFrame() {
     if (this._dirty) {
@@ -167,7 +179,9 @@ export class Tilemap {
       // 因为 scale 有原点，必须先 scale 后 translate
       canvas.scale(devicePixelRatio, devicePixelRatio);
       canvas.translate(-this._offset[0], -this._offset[1]);
-      const layers = [...this._layers];
+      const layers = [...this._layers].filter(
+        (i) => !this._hiddenLayers.has(i)
+      );
       layers.sort((a, b) => a.zIndex - b.zIndex);
       for (const layer of layers) {
         layer.draw(canvas);

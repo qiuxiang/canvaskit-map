@@ -1,6 +1,6 @@
 import * as core from "@canvaskit-tilemap/core";
 import { toCanvas } from "html-to-image";
-import { ReactNode, useContext, useEffect, useRef } from "react";
+import { ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { TilemapContext } from "./tilemap";
 
 const isSafari = navigator.userAgent.indexOf("iPhone") != -1;
@@ -11,6 +11,7 @@ export interface MarkerLayerProps
   children?: ReactNode;
   className?: string;
   cacheKey?: string;
+  hidden?: boolean;
 }
 
 export function MarkerLayer({
@@ -18,12 +19,13 @@ export function MarkerLayer({
   className,
   scale,
   cacheKey = "",
+  hidden = false,
   ...props
 }: MarkerLayerProps) {
   const tilemap = useContext(TilemapContext)!;
   const element = useRef<HTMLDivElement>(null);
+  let [layer, setLayer] = useState<core.MarkerLayer | null>(null);
   useEffect(() => {
-    let layer: core.MarkerLayer | null = null;
     let pixelRatio = devicePixelRatio;
     if (!scale) {
       if (isSafari) {
@@ -40,15 +42,18 @@ export function MarkerLayer({
       layer = new core.MarkerLayer({ image: cachedImage, scale, ...props });
       tilemap.addLayer(layer);
     } else {
-      // safari 一次可能获取不到图片
-      toCanvas(element.current!).then(() => {
-        toCanvas(element.current!, { pixelRatio }).then((image) => {
-          layer = new core.MarkerLayer({ image, scale, ...props });
-          tilemap.addLayer(layer);
-          if (cacheKey) {
-            _cache[cacheKey] = image;
-          }
-        });
+      toCanvas(element.current!, { pixelRatio }).then((image) => {
+        layer = new core.MarkerLayer({ image, scale, ...props });
+        setLayer(layer);
+        tilemap.addLayer(layer);
+        if (hidden) {
+          tilemap.hideLayer(layer);
+        } else {
+          tilemap.showLayer(layer);
+        }
+        if (cacheKey) {
+          _cache[cacheKey] = image;
+        }
       });
     }
     return () => {
@@ -57,6 +62,14 @@ export function MarkerLayer({
       }
     };
   }, []);
+  useEffect(() => {
+    if (!layer) return;
+    if (hidden) {
+      tilemap.hideLayer(layer);
+    } else {
+      tilemap.showLayer(layer);
+    }
+  }, [hidden]);
   return (
     <div
       style={{

@@ -2,13 +2,11 @@ import * as core from "@canvaskit-tilemap/core";
 import { createContext, ReactNode, useEffect, useRef, useState } from "react";
 
 export interface TilemapProps extends Omit<core.TilemapOptions, "element"> {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
 }
 
-export const TilemapContext = createContext<core.Tilemap | undefined>(
-  undefined
-);
+export const TilemapContext = createContext<core.Tilemap | null>(null);
 
 export function Tilemap({ className, ...props }: TilemapProps) {
   const element = useRef<HTMLDivElement>(null);
