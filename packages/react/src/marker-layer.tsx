@@ -65,7 +65,6 @@ export function MarkerLayer({
         createLayer(cachedImage);
       } else {
         createLayer(await toCanvas(element.current!, { pixelRatio }));
-        console.log(cacheKey);
       }
     });
 

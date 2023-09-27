@@ -1,7 +1,7 @@
 import { Canvas, Image } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
 import { canvaskit } from "./tilemap";
-import { alongSize, makeRSXform } from "./utils";
+import { makeRSXform } from "./utils";
 
 export interface MarkerItem {
   x: number;
@@ -16,8 +16,8 @@ export interface MarkerLayerOptions extends LayerOptions {
 }
 
 export class MarkerLayer extends Layer {
-  /** @internal */
-  _options: MarkerLayerOptions;
+  options: MarkerLayerOptions;
+
   /** @internal */
   _paint = new canvaskit.Paint();
   /** @internal */
@@ -25,7 +25,7 @@ export class MarkerLayer extends Layer {
 
   constructor(options: MarkerLayerOptions) {
     super(options.zIndex ?? 0);
-    this._options = {
+    this.options = {
       ...options,
       scale: options.scale ?? 1 / devicePixelRatio,
       anchor: options.anchor ?? [0, 0],
@@ -34,10 +34,10 @@ export class MarkerLayer extends Layer {
   }
 
   draw(canvas: Canvas) {
-    const { scale, items, anchor: alignment } = this._options;
+    const { scale, items, anchor } = this.options;
     const width = this._image.width();
     const height = this._image.height();
-    const anchor = alongSize(alignment!, [width, height]);
+    const _anchor = alongSize(anchor!, [width, height]);
     let rects = [] as number[];
     let xforms = [] as number[];
     for (const item of items) {
@@ -47,7 +47,7 @@ export class MarkerLayer extends Layer {
       rects[i + 1] = 0;
       rects[i + 2] = width;
       rects[i + 3] = height;
-      const xform = makeRSXform(0, scale!, anchor, offset);
+      const xform = makeRSXform(0, scale!, _anchor, offset);
       xforms[i] = xform[0];
       xforms[i + 1] = xform[1];
       xforms[i + 2] = xform[2];
@@ -56,4 +56,13 @@ export class MarkerLayer extends Layer {
 
     canvas.drawAtlas(this._image, rects, xforms, this._paint);
   }
+}
+
+function alongSize(
+  align: [number, number],
+  size: [number, number]
+): [number, number] {
+  const centerX = size[0] / 2;
+  const centerY = size[1] / 2;
+  return [centerX + align[0] * centerX, -centerY - align[1] * centerY];
 }

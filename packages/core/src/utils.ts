@@ -24,13 +24,3 @@ export function makeRSXform(
     translate[1] + -ssin * anchor[0] + scos * anchor[1],
   ];
 }
-
-/** @internal */
-export function alongSize(
-  align: [number, number],
-  size: [number, number]
-): [number, number] {
-  const centerX = size[0] / 2;
-  const centerY = size[1] / 2;
-  return [centerX + align[0] * centerX, -centerY - align[1] * centerY];
-}

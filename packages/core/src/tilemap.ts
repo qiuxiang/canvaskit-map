@@ -7,11 +7,18 @@ import init, {
 import { debounceTime, Observable } from "rxjs";
 import { TilemapGesture } from "./gesture";
 import { Layer } from "./layer";
+import { MarkerItem, MarkerLayer } from "./marker-layer";
 
 export let canvaskit: CanvasKit;
 
 export async function initCanvaskit(opts?: CanvasKitInitOptions) {
   canvaskit = await init(opts);
+}
+
+export interface TilemapClickEvent {
+  coordinate: [number, number];
+  markerLayer?: MarkerLayer;
+  markerItem?: MarkerItem;
 }
 
 export interface TilemapOptions {
@@ -35,8 +42,9 @@ export interface TilemapOptions {
    */
   maxZoom?: number;
 
-  onMove?: () => {};
-  onReady?: (tilemap: Tilemap) => {};
+  onMove?: () => void;
+  onReady?: (tilemap: Tilemap) => void;
+  onClick?: (event: TilemapClickEvent) => void;
 }
 
 export class Tilemap {
@@ -148,6 +156,39 @@ export class Tilemap {
     this.draw();
   }
 
+  /** @internal */
+  _onClick(x: number, y: number) {
+    const coordinate = this._toCoordinate(x, y);
+    const marker = this._findMarker(coordinate[0], coordinate[1]);
+    this._options.onClick?.({
+      coordinate,
+      markerLayer: marker?.[0],
+      markerItem: marker?.[1],
+    });
+  }
+
+  _findMarker(x: number, y: number): [MarkerLayer, MarkerItem] | undefined {
+    const markerLayers = [...this._layers].filter(
+      (i) => i instanceof MarkerLayer && !this._hiddenLayers.has(i)
+    );
+    markerLayers.sort((a, b) => a.zIndex - b.zIndex);
+    for (const markerLayer of markerLayers.reverse() as MarkerLayer[]) {
+      const scale = markerLayer.options.scale! / this._scale;
+      const width = markerLayer._image.width() * scale;
+      const height = markerLayer._image.height() * scale;
+      const anchor = alongSize(markerLayer.options.anchor!, [width, height]);
+      for (const item of markerLayer.options.items) {
+        const left = item.x - anchor[0];
+        const top = item.y - anchor[1];
+        const right = left + width;
+        const bottom = top + height;
+        if (left < x && x < right && top < y && y < bottom) {
+          return [markerLayer, item];
+        }
+      }
+    }
+  }
+
   addLayer(layer: Layer) {
     layer.tilemap = this;
     this._layers.add(layer);
@@ -237,6 +278,13 @@ export class Tilemap {
     ];
   }
 
+  _toCoordinate(x: number, y: number): [number, number] {
+    return [
+      (x + this._offset[0]) / this._scale - this._options.origin[0],
+      (y + this._offset[1]) / this._scale - this._options.origin[1],
+    ];
+  }
+
   get zoom() {
     return Math.log2(this._scale);
   }
@@ -244,4 +292,13 @@ export class Tilemap {
   get offset() {
     return this._offset;
   }
+}
+
+function alongSize(
+  align: [number, number],
+  size: [number, number]
+): [number, number] {
+  const centerX = size[0] / 2;
+  const centerY = size[1] / 2;
+  return [centerX + align[0] * centerX, centerY + align[1] * centerY];
 }

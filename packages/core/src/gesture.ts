@@ -155,21 +155,11 @@ export class TilemapGesture {
     } else {
       setTimeout(() => {
         if (event.timeStamp == this._lastClickTime) {
-          this._onClickTilemap([event.x, event.y]);
+          this._tilemap._onClick(event.x, event.y);
         }
       }, doubleClickDelay);
     }
     this._lastClickTime = event.timeStamp;
-  }
-
-  _onClickTilemap(position: [number, number]) {
-    // const result = this.map.findMarker(position);
-    // if (result) {
-    //   result?.[0].options.onClick?.(result[1]);
-    //   this.map.options.onClick?.({ target: result[0], index: result[1] });
-    //   return;
-    // }
-    // this.map.options.onClick?.();
   }
 }
 
