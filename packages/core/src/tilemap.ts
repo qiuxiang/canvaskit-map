@@ -199,6 +199,7 @@ export class Tilemap {
   }
 
   removeLayer(layer: Layer) {
+    layer.dispose();
     this._layers.delete(layer);
     this.draw();
   }
@@ -278,6 +279,7 @@ export class Tilemap {
     ];
   }
 
+  /** @internal */
   _toCoordinate(x: number, y: number): [number, number] {
     return [
       (x + this._offset[0]) / this._scale - this._options.origin[0],

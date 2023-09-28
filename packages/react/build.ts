@@ -11,8 +11,9 @@ async function main() {
     bundle: true,
     target: "esnext",
     jsxFactory: "h",
+    jsxFragment: "Fragment",
     jsxSideEffects: true,
-    banner: { js: 'import { createElement as h } from "react"' },
+    banner: { js: 'import { createElement as h, Fragment } from "react"' },
     format: "esm",
     external: [...Object.keys(dependencies), ...Object.keys(peerDependencies)],
   };

@@ -16,4 +16,5 @@ export abstract class Layer {
   init() {
     this.initialized = true;
   }
+  dispose() {}
 }
