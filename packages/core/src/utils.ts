@@ -24,3 +24,14 @@ export function makeRSXform(
     translate[1] + -ssin * anchor[0] + scos * anchor[1],
   ];
 }
+
+/** @internal */
+export function overlays(rect: number[], other: number[]) {
+  if (rect[2] <= other[0] || other[2] <= rect[0]) {
+    return false;
+  }
+  if (rect[3] <= other[1] || other[3] <= rect[1]) {
+    return false;
+  }
+  return true;
+}

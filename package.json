@@ -1,9 +1,9 @@
 {
   "scripts": {
     "core-build": "cd packages/core && esbuild build.ts --format=cjs | node && tsc",
-    "core-dev": "cd packages/core && esbuild build.ts --format=cjs | node - dev",
+    "core-dev": "cd packages/core && ((tsc -w) & esbuild build.ts --format=cjs | node - dev)",
     "react-build": "cd packages/react && esbuild build.ts --format=cjs | node && tsc",
-    "react-dev": "cd packages/react && esbuild build.ts --format=cjs | node - dev",
+    "react-dev": "cd packages/react && ((tsc -w) & esbuild build.ts --format=cjs | node - dev)",
     "publish": "pnpm publish -r --no-git-checks --access public --registry https://registry.npmjs.org"
   },
   "devDependencies": {

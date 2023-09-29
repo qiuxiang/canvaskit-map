@@ -15,6 +15,7 @@ async function main() {
     jsxSideEffects: true,
     banner: { js: 'import { createElement as h, Fragment } from "react"' },
     format: "esm",
+    minify: true,
     external: [...Object.keys(dependencies), ...Object.keys(peerDependencies)],
   };
   if (dev) {

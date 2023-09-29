@@ -83,6 +83,15 @@ class KongYingApi {
     );
     this.accessToken = (await response.json())["access_token"];
   }
+
+  async fetchUndergroundMaps() {
+    const response = await fetch("https://assets.yuanshen.site/web-map.json");
+    const { plugins } = await response.json();
+    return Object.values(plugins)
+      .filter((i: any) => i.extra[0] == "underground")
+      .map((i: any) => i.overlayConfig)
+      .filter((i) => i);
+  }
 }
 
 export interface Marker {

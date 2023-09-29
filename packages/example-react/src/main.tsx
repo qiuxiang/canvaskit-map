@@ -4,12 +4,14 @@ import {
   MarkerLayer,
   TileLayer,
   Tilemap,
+  ImageLayer,
 } from "@canvaskit-tilemap/react";
 import { useEffect, useState } from "react";
 
 export function Main() {
   const [loading, setLoading] = useState(true);
   const [markers, setMarkers] = useState<Marker[]>([]);
+  const [undergroundMaps, setUndergroundMaps] = useState<any[]>([]);
 
   useEffect(() => {
     initCanvaskit().then(() => setLoading(false));
@@ -19,6 +21,7 @@ export function Main() {
         typeIdList: [5],
       })
       .then(setMarkers);
+    // api.fetchUndergroundMaps().then(setUndergroundMaps);
   }, []);
 
   if (loading) {
@@ -43,7 +46,7 @@ export function Main() {
       />
       {markers.map((i) => {
         return (
-          <MarkerLayer items={i.items} className="p-1">
+          <MarkerLayer key={i.icon} items={i.items} className="p-1">
             <div className="w-6 h-6 drop-shadow-sm flex justify-center items-center rounded-full border border-solid border-white bg-gray-700">
               <img
                 className="w-11/12 h-11/12 object-cover"
@@ -52,6 +55,31 @@ export function Main() {
               />
             </div>
           </MarkerLayer>
+        );
+      })}
+      {undergroundMaps.map(({ overlays, urlTemplate }) => {
+        return (
+          <>
+            {overlays.map((i: any) => {
+              const { chunks } = i.children[0];
+              return (
+                <>
+                  {chunks.map((i: any) => {
+                    const image = new Image();
+                    image.src = urlTemplate.replace("{{chunkValue}}", i.value);
+                    image.crossOrigin = "";
+                    if (!i.bounds) {
+                      console.log(image.src);
+                      return null;
+                    }
+                    return (
+                      <ImageLayer image={image} bounds={i.bounds.flat()} />
+                    );
+                  })}
+                </>
+              );
+            })}
+          </>
         );
       })}
     </Tilemap>

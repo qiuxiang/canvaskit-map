@@ -8,6 +8,7 @@ import { debounceTime, Observable } from "rxjs";
 import { TilemapGesture } from "./gesture";
 import { Layer } from "./layer";
 import { MarkerItem, MarkerLayer } from "./marker-layer";
+import { makeRect } from "./utils";
 
 export let canvaskit: CanvasKit;
 
@@ -295,6 +296,16 @@ export class Tilemap {
 
   get offset() {
     return this._offset;
+  }
+
+  /** @internal */
+  get _visibleRect() {
+    return makeRect(
+      this._offset[0],
+      this._offset[1],
+      this._size[0],
+      this._size[1]
+    );
   }
 }
 

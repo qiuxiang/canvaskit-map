@@ -11,6 +11,7 @@ async function main() {
     bundle: true,
     target: "esnext",
     format: "esm",
+    minify: true,
     external: Object.keys(dependencies),
   };
   if (dev) {
