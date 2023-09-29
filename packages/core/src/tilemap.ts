@@ -167,6 +167,7 @@ export class Tilemap {
     });
   }
 
+  /** @internal */
   _findMarker(x: number, y: number): [MarkerLayer, MarkerItem] | undefined {
     const markerLayers = [...this._layers].filter(
       (i) => i instanceof MarkerLayer && !this._hiddenLayers.has(i)
@@ -183,6 +184,7 @@ export class Tilemap {
         const right = left + width;
         const bottom = top + height;
         if (left < x && x < right && top < y && y < bottom) {
+          markerLayer.options.onClick?.(item);
           return [markerLayer, item];
         }
       }

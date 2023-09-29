@@ -13,6 +13,7 @@ export interface MarkerLayerOptions extends LayerOptions {
   image: CanvasImageSource;
   scale?: number;
   anchor?: [number, number];
+  onClick?: (markerItem: MarkerItem) => void;
 }
 
 export class MarkerLayer extends Layer {
