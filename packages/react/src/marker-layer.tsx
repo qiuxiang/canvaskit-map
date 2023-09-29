@@ -26,22 +26,22 @@ const isSafari = navigator.userAgent.indexOf("iPhone") != -1;
 const _cache = {} as Record<string, HTMLCanvasElement>;
 const _queue = new TaskQueue();
 
-export interface MarkerLayerProps
-  extends Omit<core.MarkerLayerOptions, "image"> {
+export interface MarkerLayerProps<T extends core.MarkerItem>
+  extends Omit<core.MarkerLayerOptions<T>, "image"> {
   children?: ReactNode;
   className?: string;
   cacheKey?: string;
   hidden?: boolean;
 }
 
-export function MarkerLayer({
+export function MarkerLayer<T extends core.MarkerItem>({
   children,
   className,
   scale,
   cacheKey = "",
   hidden = false,
-  ...props
-}: MarkerLayerProps) {
+  ...options
+}: MarkerLayerProps<T>) {
   const tilemap = useContext(TilemapContext)!;
   const element = useRef<HTMLDivElement>(null);
   let [layer, setLayer] = useState<core.MarkerLayer | null>(null);
@@ -69,7 +69,7 @@ export function MarkerLayer({
     });
 
     function createLayer(image: HTMLCanvasElement) {
-      layer = new core.MarkerLayer({ image, scale, ...props });
+      layer = new core.MarkerLayer({ image, scale, ...options });
       setLayer(layer);
       tilemap.addLayer(layer);
       if (hidden) {
@@ -97,6 +97,13 @@ export function MarkerLayer({
       tilemap.showLayer(layer);
     }
   }, [hidden]);
+
+  useEffect(() => {
+    if (layer) {
+      layer.options = { ...layer.options, ...options };
+      tilemap.draw();
+    }
+  }, Object.values(options));
 
   return (
     <div

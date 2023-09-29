@@ -8,23 +8,24 @@ export interface MarkerItem {
   y: number;
 }
 
-export interface MarkerLayerOptions extends LayerOptions {
-  items: MarkerItem[];
+export interface MarkerLayerOptions<T extends MarkerItem = MarkerItem>
+  extends LayerOptions {
+  items: T[];
   image: CanvasImageSource;
   scale?: number;
   anchor?: [number, number];
-  onClick?: (markerItem: MarkerItem) => void;
+  onClick?: (markerItem: T) => void;
 }
 
-export class MarkerLayer extends Layer {
-  options: MarkerLayerOptions;
+export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer {
+  options: MarkerLayerOptions<T>;
 
   /** @internal */
   _paint = new canvaskit.Paint();
   /** @internal */
   _image: Image;
 
-  constructor(options: MarkerLayerOptions) {
+  constructor(options: MarkerLayerOptions<T>) {
     super(options.zIndex ?? 0);
     this.options = {
       ...options,
