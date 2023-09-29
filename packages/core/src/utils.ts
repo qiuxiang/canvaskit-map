@@ -35,3 +35,24 @@ export function overlays(rect: number[], other: number[]) {
   }
   return true;
 }
+
+type Task = () => Promise<void>;
+
+export class TaskQueue {
+  _queue = [] as Task[];
+  _running = false;
+
+  async run(task: Task) {
+    this._queue.push(task);
+    if (!this._running) {
+      this._running = true;
+      while (this._queue.length > 0) {
+        const task = this._queue.shift()!;
+        try {
+          await task();
+        } catch (_) {}
+      }
+      this._running = false;
+    }
+  }
+}

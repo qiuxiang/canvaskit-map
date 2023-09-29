@@ -298,8 +298,11 @@ export class Tilemap {
     return this._offset;
   }
 
-  /** @internal */
-  get _visibleRect() {
+  get size() {
+    return this._size;
+  }
+
+  get visibleRect() {
     return makeRect(
       this._offset[0],
       this._offset[1],

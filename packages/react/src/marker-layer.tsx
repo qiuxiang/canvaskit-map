@@ -3,28 +3,9 @@ import { toCanvas } from "html-to-image";
 import { ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { TilemapContext } from "./tilemap";
 
-type Task = () => Promise<void>;
-
-class TaskQueue {
-  _queue = [] as Task[];
-  _running = false;
-
-  async run(task: Task) {
-    this._queue.push(task);
-    if (!this._running) {
-      this._running = true;
-      while (this._queue.length > 0) {
-        const task = this._queue.shift()!;
-        await task();
-      }
-      this._running = false;
-    }
-  }
-}
-
 const isSafari = navigator.userAgent.indexOf("iPhone") != -1;
 const _cache = {} as Record<string, HTMLCanvasElement>;
-const _queue = new TaskQueue();
+const _queue = new core.TaskQueue();
 
 export interface MarkerLayerProps<T extends core.MarkerItem>
   extends Omit<core.MarkerLayerOptions<T>, "image"> {

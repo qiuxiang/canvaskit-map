@@ -21,7 +21,7 @@ export function Main() {
         typeIdList: [5],
       })
       .then(setMarkers);
-    // api.fetchUndergroundMaps().then(setUndergroundMaps);
+    api.fetchUndergroundMaps().then(setUndergroundMaps);
   }, []);
 
   if (loading) {
