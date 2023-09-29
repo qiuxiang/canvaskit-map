@@ -7,12 +7,12 @@ export interface DomLayerOptions extends LayerOptions {
 }
 
 export class DomLayer extends Layer {
-  _options: DomLayerOptions;
+  options: DomLayerOptions;
   _element = null as unknown as HTMLElement;
 
   constructor(options: DomLayerOptions) {
     super(options.zIndex ?? 0);
-    this._options = options;
+    this.options = options;
   }
 
   init() {
@@ -20,7 +20,8 @@ export class DomLayer extends Layer {
     this._element.style.position = "absolute";
     this._element.style.top = "0";
     this._element.style.left = "0";
-    this._element.appendChild(this._options.element);
+    this._element.style.touchAction = "none";
+    this._element.appendChild(this.options.element);
     this._element.addEventListener("click", (event) => {
       if (event.target != this._element) {
         event.stopPropagation();
@@ -33,7 +34,7 @@ export class DomLayer extends Layer {
       this._element.style.width = `${inlineSize}px`;
       this._element.style.height = `${blockSize}px`;
     });
-    resizeObserver.observe(this._options.element);
+    resizeObserver.observe(this.options.element);
   }
 
   dispose() {
@@ -41,8 +42,7 @@ export class DomLayer extends Layer {
   }
 
   draw() {
-    let { x, y } = this._options;
-    const position = this.tilemap._toOffset(this._options.x, this._options.y);
+    const position = this.tilemap._toOffset(this.options.x, this.options.y);
     position[0] -= this.tilemap._offset[0];
     position[1] -= this.tilemap._offset[1];
     this._element.style.transform = `translate(${position[0]}px, ${position[1]}px)`;

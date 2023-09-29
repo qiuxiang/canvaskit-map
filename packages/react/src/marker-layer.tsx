@@ -44,7 +44,7 @@ export function MarkerLayer<T extends core.MarkerItem>({
 }: MarkerLayerProps<T>) {
   const tilemap = useContext(TilemapContext)!;
   const element = useRef<HTMLDivElement>(null);
-  let [layer, setLayer] = useState<core.MarkerLayer | null>(null);
+  let [layer, setLayer] = useState<core.MarkerLayer<T> | null>(null);
 
   useEffect(() => {
     let pixelRatio = devicePixelRatio;
@@ -69,7 +69,7 @@ export function MarkerLayer<T extends core.MarkerItem>({
     });
 
     function createLayer(image: HTMLCanvasElement) {
-      layer = new core.MarkerLayer({ image, scale, ...options });
+      layer = new core.MarkerLayer<T>({ image, scale, ...options });
       setLayer(layer);
       tilemap.addLayer(layer);
       if (hidden) {
@@ -90,11 +90,12 @@ export function MarkerLayer<T extends core.MarkerItem>({
   }, []);
 
   useEffect(() => {
-    if (!layer) return;
-    if (hidden) {
-      tilemap.hideLayer(layer);
-    } else {
-      tilemap.showLayer(layer);
+    if (layer) {
+      if (hidden) {
+        tilemap.hideLayer(layer);
+      } else {
+        tilemap.showLayer(layer);
+      }
     }
   }, [hidden]);
 
