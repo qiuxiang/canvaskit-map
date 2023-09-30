@@ -3,8 +3,6 @@ import { Layer, LayerOptions } from "./layer";
 import { canvaskit } from "./tilemap";
 import { makeRect, overlays, TaskQueue } from "./utils";
 
-const _queue = new TaskQueue();
-
 export interface ImageLayerOptions extends LayerOptions {
   image: CanvasImageSource;
   bounds: number[];
@@ -22,32 +20,33 @@ export class ImageLayer extends Layer {
   }
 
   async init() {
-    _queue.run(async () => {
-      const { image } = this.options;
-      if (image instanceof HTMLImageElement && !image.width) {
-        await new Promise((resolve) => {
-          image.addEventListener("load", resolve);
-        });
-      }
-      let _image = canvaskit.MakeImageFromCanvasImageSource(image);
-      this._images[0] = _image;
-      let width = _image.width();
-      let height = _image.height();
-      const surface = canvaskit.MakeSurface(width, height)!;
-      const canvas = surface.getCanvas();
-      for (let zoom = -1; zoom > this.tilemap._minZoom; zoom -= 1) {
-        const src = makeRect(0, 0, width, height);
-        width /= 2;
-        height /= 2;
-        const dst = makeRect(0, 0, width, height);
-        canvas.clear(canvaskit.TRANSPARENT);
-        canvas.drawImageRect(_image, src, dst, this._paint);
-        surface.flush();
-        _image = surface.makeImageSnapshot([0, 0, width, height]);
-        this._images[zoom] = _image;
-      }
-      this.tilemap.draw();
-    });
+    const { image } = this.options;
+    if (image instanceof HTMLImageElement && !image.width) {
+      await new Promise((resolve) => {
+        image.addEventListener("load", resolve);
+      });
+    }
+    let _image = image as HTMLCanvasElement;
+    this._images[0] = canvaskit.MakeImageFromCanvasImageSource(image);
+    let width = _image.width;
+    let height = _image.height;
+    for (let zoom = -1; zoom > this.tilemap._minZoom; zoom -= 1) {
+      _image = this._downscaleImage(_image);
+      this._images[zoom] = canvaskit.MakeImageFromCanvasImageSource(_image);
+    }
+    this.tilemap.draw();
+  }
+
+  _downscaleImage(image: HTMLCanvasElement) {
+    const canvas = document.createElement("canvas");
+    const canvas2d = canvas.getContext("2d")!;
+    canvas.width = image.width / 2;
+    canvas.height = image.height / 2;
+    if (canvas.width == 0 || canvas.height == 0) {
+      return image;
+    }
+    canvas2d.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas;
   }
 
   draw(canvas: Canvas) {
