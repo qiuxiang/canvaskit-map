@@ -37,7 +37,7 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
     }
   }
 
-  updateImage(image: CanvasImageSource) {
+  set image(image: CanvasImageSource) {
     this._image = canvaskit.MakeImageFromCanvasImageSource(image);
     this.tilemap.draw();
   }

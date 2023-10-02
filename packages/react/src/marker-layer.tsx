@@ -37,7 +37,7 @@ export function MarkerLayer<T extends core.MarkerItem>({
     const layer = new core.MarkerLayer<T>({ scale, ...options });
     _queue.run(async () => {
       function createLayer(image: HTMLCanvasElement) {
-        layer.updateImage(image);
+        layer.image = image;
         if (cacheKey) {
           _cache[cacheKey] = image;
         }
