@@ -5,9 +5,14 @@ import { dependencies, peerDependencies } from "./package.json";
 const dev = process.argv.pop() == "dev";
 
 async function main() {
-  const options: BuildOptions = {
-    entryPoints: ["src/index.ts"],
+  const commonOptions: BuildOptions = {
     outdir: "dist",
+    minify: true,
+    mangleProps: /^_/,
+  };
+  const options: BuildOptions = {
+    ...commonOptions,
+    entryPoints: ["src/index.ts"],
     bundle: true,
     target: "esnext",
     jsxFactory: "h",
@@ -15,12 +20,11 @@ async function main() {
     jsxSideEffects: true,
     banner: { js: 'import { createElement as h, Fragment } from "react"' },
     format: "esm",
-    minify: true,
     external: [...Object.keys(dependencies), ...Object.keys(peerDependencies)],
   };
   if (dev) {
     let buildTime = 0;
-    async function _build() {
+    async function devBuild() {
       const now = Date.now();
       if (now - buildTime > 1000) {
         const { errors, warnings } = await build(options);
@@ -33,16 +37,14 @@ async function main() {
         buildTime = now;
       }
     }
-    _build();
-    watch("src").on("change", _build);
+    devBuild();
+    watch("src").on("change", devBuild);
   } else {
     await build(options);
     await build({
+      ...options,
       entryPoints: ["dist/index.js"],
-      outdir: "dist",
       allowOverwrite: true,
-      mangleProps: /^_/,
-      minify: true,
     });
   }
 }

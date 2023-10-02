@@ -1,19 +1,11 @@
-import * as core from "@canvaskit-tilemap/core";
-import { useContext, useEffect } from "react";
-import { TilemapContext } from "./tilemap";
+import { Layer } from "@canvaskit-tilemap/core";
+import { useLayer } from "./hooks";
 
-export interface CustomLayerProps {
-  createLayer: () => core.Layer;
+export interface CustomLayerProps<L extends Layer> {
+  createLayer: () => L;
 }
 
-export function CustomLayer(props: CustomLayerProps) {
-  const tilemap = useContext(TilemapContext)!;
-  useEffect(() => {
-    const layer = props.createLayer();
-    tilemap.addLayer(layer);
-    return () => {
-      tilemap.removeLayer(layer);
-    };
-  }, []);
+export function CustomLayer<L extends Layer>(props: CustomLayerProps<L>) {
+  useLayer(props.createLayer, {});
   return null;
 }

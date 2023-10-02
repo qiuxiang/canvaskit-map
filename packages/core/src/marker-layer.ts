@@ -11,32 +11,41 @@ export interface MarkerItem {
 export interface MarkerLayerOptions<T extends MarkerItem = MarkerItem>
   extends LayerOptions {
   items: T[];
-  image: CanvasImageSource;
+  image?: CanvasImageSource;
   scale?: number;
   anchor?: [number, number];
   onClick?: (markerItem: T) => void;
 }
 
-export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer {
-  options: MarkerLayerOptions<T>;
-
+export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
+  MarkerLayerOptions<T>
+> {
   /** @internal */
   _paint = new canvaskit.Paint();
+
   /** @internal */
-  _image: Image;
+  _image: Image | null = null;
 
   constructor(options: MarkerLayerOptions<T>) {
-    super(options.zIndex ?? 0);
-    this.options = {
+    super({
       ...options,
       scale: options.scale ?? 1 / devicePixelRatio,
       anchor: options.anchor ?? [0, 0],
-    };
-    this._image = canvaskit.MakeImageFromCanvasImageSource(options.image);
+    });
+    if (options.image) {
+      this._image = canvaskit.MakeImageFromCanvasImageSource(options.image);
+    }
+  }
+
+  updateImage(image: CanvasImageSource) {
+    this._image = canvaskit.MakeImageFromCanvasImageSource(image);
+    this.tilemap.draw();
   }
 
   draw(canvas: Canvas) {
-    const { scale, items, anchor } = this.options;
+    if (!this._image) return;
+
+    const { scale, items, anchor } = this._options;
     const width = this._image.width();
     const height = this._image.height();
     const _anchor = alongSize(anchor!, [width, height]);

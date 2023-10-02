@@ -1,26 +1,24 @@
 import { Canvas, Image } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
 import { canvaskit } from "./tilemap";
-import { makeRect, overlays, TaskQueue } from "./utils";
+import { makeRect, overlays } from "./utils";
 
 export interface ImageLayerOptions extends LayerOptions {
   image: CanvasImageSource;
   bounds: number[];
 }
 
-export class ImageLayer extends Layer {
-  options: ImageLayerOptions;
+export class ImageLayer extends Layer<ImageLayerOptions> {
   _element = null as unknown as HTMLElement;
   _images = {} as Record<number, Image>;
   _paint = new canvaskit.Paint();
 
   constructor(options: ImageLayerOptions) {
-    super(options.zIndex ?? 0);
-    this.options = options;
+    super(options);
   }
 
   async init() {
-    const { image } = this.options;
+    const { image } = this._options;
     if (image instanceof HTMLImageElement && !image.width) {
       await new Promise((resolve) => {
         image.addEventListener("load", resolve);
@@ -28,8 +26,6 @@ export class ImageLayer extends Layer {
     }
     let _image = image as HTMLCanvasElement;
     this._images[0] = canvaskit.MakeImageFromCanvasImageSource(image);
-    let width = _image.width;
-    let height = _image.height;
     for (let zoom = -1; zoom > this.tilemap._minZoom; zoom -= 1) {
       _image = this._downscaleImage(_image);
       this._images[zoom] = canvaskit.MakeImageFromCanvasImageSource(_image);
@@ -56,7 +52,7 @@ export class ImageLayer extends Layer {
     const image = this._images[zoom] ?? Object.values(this._images).pop();
     if (!image) return;
 
-    const { bounds } = this.options;
+    const { bounds } = this._options;
     const dstOffset = this.tilemap._toOffset(bounds[0], bounds[1]);
     const src = makeRect(0, 0, image.width(), image.height());
     const dst = makeRect(

@@ -69,8 +69,6 @@ export class Tilemap {
   /** @internal */
   _layers = new Set<Layer>();
   /** @internal */
-  _hiddenLayers = new Set<Layer>();
-  /** @internal */
   _dirty = false;
   /** @internal */
   _initialized = false;
@@ -171,10 +169,12 @@ export class Tilemap {
   /** @internal */
   _findMarker(x: number, y: number): [MarkerLayer, MarkerItem] | undefined {
     const markerLayers = [...this._layers].filter(
-      (i) => i instanceof MarkerLayer && !this._hiddenLayers.has(i)
+      (i) => i instanceof MarkerLayer && !i.options.hidden
     );
     markerLayers.sort((a, b) => a.zIndex - b.zIndex);
     for (const markerLayer of markerLayers.reverse() as MarkerLayer[]) {
+      if (!markerLayer._image) continue;
+
       const scale = markerLayer.options.scale! / this._scale;
       const width = markerLayer._image.width() * scale;
       const height = markerLayer._image.height() * scale;
@@ -207,14 +207,6 @@ export class Tilemap {
     this.draw();
   }
 
-  hideLayer(layer: Layer) {
-    this._hiddenLayers.add(layer);
-  }
-
-  showLayer(layer: Layer) {
-    this._hiddenLayers.delete(layer);
-  }
-
   /** @internal */
   _drawFrame() {
     if (this._dirty) {
@@ -224,9 +216,7 @@ export class Tilemap {
       // 因为 scale 有原点，必须先 scale 后 translate
       canvas.scale(devicePixelRatio, devicePixelRatio);
       canvas.translate(-this._offset[0], -this._offset[1]);
-      const layers = [...this._layers].filter(
-        (i) => !this._hiddenLayers.has(i)
-      );
+      const layers = [...this._layers].filter((i) => !i.options.hidden);
       layers.sort((a, b) => a.zIndex - b.zIndex);
       for (const layer of layers) {
         layer.draw(canvas);

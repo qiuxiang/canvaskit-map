@@ -1,22 +1,26 @@
+import { watch } from "chokidar";
 import { build, BuildOptions } from "esbuild";
 import { dependencies } from "./package.json";
-import { watch } from "chokidar";
 
 const dev = process.argv.pop() == "dev";
 
 async function main() {
-  const options: BuildOptions = {
-    entryPoints: ["src/index.ts"],
+  const commonOptions: BuildOptions = {
     outdir: "dist",
+    mangleProps: /^_/,
+    minify: true,
+  };
+  const options: BuildOptions = {
+    ...commonOptions,
+    entryPoints: ["src/index.ts"],
     bundle: true,
     target: "esnext",
     format: "esm",
-    minify: true,
     external: Object.keys(dependencies),
   };
   if (dev) {
     let buildTime = 0;
-    async function _build() {
+    async function devBuild() {
       const now = Date.now();
       if (now - buildTime > 1000) {
         const { errors, warnings } = await build(options);
@@ -29,16 +33,14 @@ async function main() {
         buildTime = now;
       }
     }
-    _build();
-    watch("src").on("change", _build);
+    devBuild();
+    watch("src").on("change", devBuild);
   } else {
     await build(options);
     await build({
+      ...commonOptions,
       entryPoints: ["dist/index.js"],
-      outdir: "dist",
       allowOverwrite: true,
-      mangleProps: /^_/,
-      minify: true,
     });
   }
 }

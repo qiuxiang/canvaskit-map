@@ -1,7 +1,7 @@
 import * as core from "@canvaskit-tilemap/core";
 import { toCanvas } from "html-to-image";
-import { ReactNode, useContext, useEffect, useRef, useState } from "react";
-import { TilemapContext } from "./tilemap";
+import { ReactNode, useRef } from "react";
+import { useLayer } from "./hooks";
 
 const isSafari = navigator.userAgent.indexOf("iPhone") != -1;
 const _cache = {} as Record<string, HTMLCanvasElement>;
@@ -12,7 +12,6 @@ export interface MarkerLayerProps<T extends core.MarkerItem>
   children?: ReactNode;
   className?: string;
   cacheKey?: string;
-  hidden?: boolean;
 }
 
 export function MarkerLayer<T extends core.MarkerItem>({
@@ -20,14 +19,10 @@ export function MarkerLayer<T extends core.MarkerItem>({
   className,
   scale,
   cacheKey = "",
-  hidden = false,
   ...options
 }: MarkerLayerProps<T>) {
-  const tilemap = useContext(TilemapContext)!;
   const element = useRef<HTMLDivElement>(null);
-  let [layer, setLayer] = useState<core.MarkerLayer<T> | null>(null);
-
-  useEffect(() => {
+  useLayer(() => {
     let pixelRatio = devicePixelRatio;
     if (!scale) {
       if (isSafari) {
@@ -39,8 +34,14 @@ export function MarkerLayer<T extends core.MarkerItem>({
         scale = 1 / pixelRatio;
       }
     }
-
+    const layer = new core.MarkerLayer<T>({ scale, ...options });
     _queue.run(async () => {
+      function createLayer(image: HTMLCanvasElement) {
+        layer.updateImage(image);
+        if (cacheKey) {
+          _cache[cacheKey] = image;
+        }
+      }
       const cachedImage = _cache[cacheKey];
       if (cachedImage) {
         createLayer(cachedImage);
@@ -48,44 +49,8 @@ export function MarkerLayer<T extends core.MarkerItem>({
         createLayer(await toCanvas(element.current!, { pixelRatio }));
       }
     });
-
-    function createLayer(image: HTMLCanvasElement) {
-      layer = new core.MarkerLayer<T>({ image, scale, ...options });
-      setLayer(layer);
-      tilemap.addLayer(layer);
-      if (hidden) {
-        tilemap.hideLayer(layer);
-      } else {
-        tilemap.showLayer(layer);
-      }
-      if (cacheKey) {
-        _cache[cacheKey] = image;
-      }
-    }
-
-    return () => {
-      if (layer) {
-        tilemap.removeLayer(layer);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (layer) {
-      if (hidden) {
-        tilemap.hideLayer(layer);
-      } else {
-        tilemap.showLayer(layer);
-      }
-    }
-  }, [hidden]);
-
-  useEffect(() => {
-    if (layer) {
-      layer.options = { ...layer.options, ...options };
-      tilemap.draw();
-    }
-  }, Object.values(options));
+    return layer;
+  }, options);
 
   return (
     <div

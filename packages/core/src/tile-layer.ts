@@ -27,23 +27,20 @@ export interface TileLayerOptions extends LayerOptions {
   getTileUrl: (x: number, y: number, z: number) => string;
 }
 
-export class TileLayer extends Layer {
-  /** @internal */
-  _options: TileLayerOptions;
+export class TileLayer extends Layer<TileLayerOptions> {
   /** @internal */
   _images = {} as Record<string, Image>;
   /** @internal */
   _paint = new canvaskit.Paint();
   /** @internal */
-  _taskQueue = new TaskQueue();
+  _tasks = new TaskStack();
 
   constructor(options: TileLayerOptions) {
-    super(options.zIndex ?? 0);
-    this._options = {
+    super({
       ...options,
       tileSize: options.tileSize ?? 256,
       offset: options.offset ?? [0, 0],
-    };
+    });
   }
 
   async init() {
@@ -64,13 +61,15 @@ export class TileLayer extends Layer {
         );
       }
     }
+    const options = this._options;
     await Promise.all(promises);
+    this._options = options;
     super.init();
   }
 
   /** @internal */
   async _resolveImage(url: string, key: string) {
-    this._taskQueue.run(async () => {
+    this._tasks.run(async () => {
       if (!this._images[key]) {
         try {
           await this._fetchImage(url, key);
@@ -144,7 +143,7 @@ export class TileLayer extends Layer {
 
 type Task = () => Promise<void>;
 
-class TaskQueue {
+class TaskStack {
   _length = 16;
   _queue = [] as Task[];
   _running = false;

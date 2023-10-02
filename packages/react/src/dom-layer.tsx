@@ -1,7 +1,7 @@
 import * as core from "@canvaskit-tilemap/core";
 import { DomLayerOptions } from "@canvaskit-tilemap/core";
-import { ReactNode, useContext, useEffect, useRef, useState } from "react";
-import { TilemapContext } from "./tilemap";
+import { ReactNode, useRef } from "react";
+import { useLayer } from "./hooks";
 
 export interface DomLayerProps extends Omit<DomLayerOptions, "element"> {
   children: ReactNode;
@@ -9,28 +9,11 @@ export interface DomLayerProps extends Omit<DomLayerOptions, "element"> {
 }
 
 export function DomLayer({ className, children, ...options }: DomLayerProps) {
-  const tilemap = useContext(TilemapContext)!;
   const element = useRef<HTMLDivElement>(null);
-  const [layer, setLayer] = useState<core.DomLayer | null>(null);
-
-  useEffect(() => {
-    const layer = new core.DomLayer({ ...options, element: element.current! });
-    tilemap.addLayer(layer);
-    setLayer(layer);
-    return () => {
-      if (layer) {
-        tilemap.removeLayer(layer);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (layer) {
-      layer.options = { ...layer.options, ...options };
-      tilemap.draw();
-    }
-  }, Object.values(options));
-
+  useLayer(
+    () => new core.DomLayer({ ...options, element: element.current! }),
+    options
+  );
   return (
     <div ref={element} className={className}>
       {children}
