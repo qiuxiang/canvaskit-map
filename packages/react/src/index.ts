@@ -4,5 +4,6 @@ export * from "./dom-layer";
 export * from "./hooks";
 export * from "./image-layer";
 export * from "./marker-layer";
+export * from "./text-layer";
 export * from "./tile-layer";
 export * from "./tilemap";

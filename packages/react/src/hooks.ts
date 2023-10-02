@@ -6,13 +6,9 @@ export function useTilemap() {
   return useContext(TilemapContext)!;
 }
 
-interface LayerProps extends LayerOptions {
-  hidden?: boolean;
-}
-
-export function useLayer<O extends LayerProps, L extends Layer>(
+export function useLayer<P extends LayerOptions, L extends Layer>(
   createLayer: () => L,
-  options: O
+  props: P
 ) {
   const tilemap = useTilemap();
   let [layer, setLayer] = useState<L | null>(null);
@@ -30,10 +26,10 @@ export function useLayer<O extends LayerProps, L extends Layer>(
 
   useEffect(() => {
     if (layer) {
-      layer.options = { ...layer.options, ...options };
+      layer.options = { ...layer.options, ...props };
       tilemap.draw();
     }
-  }, Object.values(options));
+  }, Object.values(props));
 
   return layer;
 }
