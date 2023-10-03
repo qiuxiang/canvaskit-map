@@ -5,6 +5,7 @@ import { makeRect, overlays } from "./utils";
 
 export interface ImageLayerOptions extends LayerOptions {
   image: CanvasImageSource;
+  opacity?: number;
   bounds: number[];
 }
 
@@ -15,6 +16,23 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
 
   constructor(options: ImageLayerOptions) {
     super(options);
+    this._setOpacity();
+  }
+
+  get options() {
+    return this._options;
+  }
+
+  set options(options: ImageLayerOptions) {
+    this._options = options;
+    this._setOpacity();
+  }
+
+  _setOpacity() {
+    const { opacity } = this._options;
+    if (opacity != undefined) {
+      this._paint.setColor(canvaskit.Color(0, 0, 0, opacity));
+    }
   }
 
   async init() {
