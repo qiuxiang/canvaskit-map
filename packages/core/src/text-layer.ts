@@ -1,52 +1,47 @@
-import { Canvas, Image } from "canvaskit-wasm";
+import { Canvas, FontMgr, Paragraph, ParagraphStyle } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
 import { canvaskit } from "./tilemap";
-import { makeRect } from "./utils";
+import { TaskQueue } from "./utils";
 
 export interface TextLayerOptions extends LayerOptions {
   text: string;
   x: number;
   y: number;
+  maxWidth?: number;
+  fontUrl: string;
+  style: ParagraphStyle;
 }
 
-export class TextLayer extends Layer<TextLayerOptions> {
-  _image: Image;
-  _paint = new canvaskit.Paint();
+const _queue = new TaskQueue();
+const _cache = {} as Record<string, FontMgr>;
 
-  constructor(options: TextLayerOptions) {
-    super(options);
-    const image1 = document.createElement("canvas");
-    let canvas = image1.getContext("2d")!;
-    canvas.font = "bold 60px sans-serif";
-    canvas.fillStyle = "#fff";
-    const textMetrics = canvas.measureText(options.text);
-    canvas.strokeText(options.text, 0, textMetrics.actualBoundingBoxAscent);
-    canvas.fillText(options.text, 0, textMetrics.actualBoundingBoxAscent);
-    const image = document.createElement("canvas");
-    console.log(textMetrics);
-    canvas = image.getContext("2d")!;
-    image.width = textMetrics.width;
-    image.height =
-      textMetrics.actualBoundingBoxAscent +
-      textMetrics.actualBoundingBoxDescent;
-    canvas.drawImage(image1, 0, 0);
-    this._image = canvaskit.MakeImageFromCanvasImageSource(image);
+export class TextLayer extends Layer<TextLayerOptions> {
+  _paint = new canvaskit.Paint();
+  _paragraph?: Paragraph;
+
+  async init() {
+    _queue.run(async () => {
+      let fontMgr = _cache[this._options.fontUrl];
+      if (!fontMgr) {
+        const response = await fetch(this._options.fontUrl);
+        fontMgr = canvaskit.FontMgr.FromData(await response.arrayBuffer())!;
+      }
+      const style = new canvaskit.ParagraphStyle(this._options.style);
+      const builder = canvaskit.ParagraphBuilder.Make(style, fontMgr);
+      builder.addText(this._options.text);
+      this._paragraph = builder.build();
+      this._paragraph.layout(this._options.maxWidth ?? this.tilemap._size[0]);
+    });
   }
 
   draw(canvas: Canvas) {
-    const { x, y } = this._options;
-    const offset = this.tilemap._toOffset(x, y);
-    let width = this._image.width();
-    let height = this._image.height();
-    const src = makeRect(0, 0, width, height);
-    width /= 2;
-    height /= 2;
-    const dst = makeRect(
-      offset[0] - width / 2,
-      offset[1] - height / 2,
-      width,
-      height
-    );
-    canvas.drawImageRect(this._image, src, dst, this._paint);
+    const [x, y] = this.tilemap._toOffset(this._options.x, this._options.y);
+    if (this._paragraph) {
+      canvas.drawParagraph(
+        this._paragraph,
+        x - this._paragraph.getMinIntrinsicWidth() / 2,
+        y - this._paragraph.getHeight() / 2
+      );
+    }
   }
 }
