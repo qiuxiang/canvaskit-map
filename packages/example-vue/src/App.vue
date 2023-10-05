@@ -49,7 +49,7 @@ function getTileUrl(x: number, y: number, z: number) {
       >
         <img
           class="w-11/12 h-11/12 object-cover"
-          crossorigin=""
+          cross-origin=""
           :src="i.icon"
         />
       </div>

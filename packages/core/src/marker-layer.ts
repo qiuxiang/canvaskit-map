@@ -12,6 +12,9 @@ export interface MarkerLayerOptions<T extends MarkerItem = MarkerItem>
   extends LayerOptions {
   items: T[];
   image?: CanvasImageSource;
+  /**
+   * 缩放，默认取 1 / devicePixelRatio
+   */
   scale?: number;
   anchor?: [number, number];
   onClick?: (markerItem: T) => void;

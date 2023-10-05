@@ -38,5 +38,5 @@ export const MarkerLayer = defineComponent(
       </div>
     );
   },
-  { props: ["items", "scale"], inheritAttrs: false }
+  { inheritAttrs: false }
 );

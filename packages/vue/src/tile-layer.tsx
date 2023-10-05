@@ -27,5 +27,4 @@ export const TileLayer = defineComponent(
     });
     return () => null;
   },
-  { props: ["tileSize", "minZoom", "maxZoom", "offset", "getTileUrl"] }
 );
