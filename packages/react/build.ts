@@ -15,10 +15,10 @@ async function main() {
     entryPoints: ["src/index.ts"],
     bundle: true,
     target: "esnext",
-    jsxFactory: "h",
+    jsxFactory: "_h",
     jsxFragment: "Fragment",
     jsxSideEffects: true,
-    banner: { js: 'import { createElement as h, Fragment } from "react"' },
+    banner: { js: 'import { createElement as _h, Fragment } from "react"' },
     format: "esm",
     external: [...Object.keys(dependencies), ...Object.keys(peerDependencies)],
   };

@@ -46,6 +46,10 @@ export function MarkerLayer<T extends core.MarkerItem>({
       if (cachedImage) {
         createLayer(cachedImage);
       } else {
+        // SB safari
+        if (isSafari) {
+          await toCanvas(element.current!, { pixelRatio });
+        }
         createLayer(await toCanvas(element.current!, { pixelRatio }));
       }
     });
