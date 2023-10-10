@@ -8,7 +8,7 @@ export interface DomLayerOptions extends LayerOptions {
 
 export class DomLayer extends Layer<DomLayerOptions> {
   /** @internal */
-  _element = null as unknown as HTMLElement;
+  _element?: HTMLElement;
 
   constructor(options: DomLayerOptions) {
     super(options);
@@ -30,20 +30,20 @@ export class DomLayer extends Layer<DomLayerOptions> {
 
     const resizeObserver = new ResizeObserver(([entry]) => {
       const { blockSize, inlineSize } = entry.borderBoxSize[0];
-      this._element.style.width = `${inlineSize}px`;
-      this._element.style.height = `${blockSize}px`;
+      this._element!.style.width = `${inlineSize}px`;
+      this._element!.style.height = `${blockSize}px`;
     });
     resizeObserver.observe(this._options.element);
   }
 
   dispose() {
-    this.map!._element.removeChild(this._element);
+    this.map!._element.removeChild(this._element!);
   }
 
   draw() {
     const position = this.map!._toOffset(this._options.x, this._options.y);
     position[0] -= this.map!._offset[0];
     position[1] -= this.map!._offset[1];
-    this._element.style.transform = `translate(${position[0]}px, ${position[1]}px)`;
+    this._element!.style.transform = `translate(${position[0]}px, ${position[1]}px)`;
   }
 }

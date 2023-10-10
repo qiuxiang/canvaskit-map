@@ -49,7 +49,9 @@ export function alongSize(
 export type Task = () => Promise<void>;
 
 export class TaskQueue {
+  /** @internal */
   _queue = [] as Task[];
+  /** @internal */
   _running = false;
 
   async run(task: Task) {

@@ -10,9 +10,6 @@ export interface ImageLayerOptions extends LayerOptions {
 
 export class ImageLayer extends Layer<ImageLayerOptions> {
   /** @internal */
-  _element = null as unknown as HTMLElement;
-
-  /** @internal */
   _images = {} as Record<number, Image>;
 
   /** @internal */
