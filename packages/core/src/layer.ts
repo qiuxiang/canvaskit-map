@@ -17,7 +17,7 @@ export abstract class Layer<O extends LayerOptions = LayerOptions> {
   /**
    * addLayer 时由 tilemap 赋值
    */
-  tilemap: Tilemap = null as unknown as Tilemap;
+  map?: Tilemap;
   constructor(public _options: O) {}
   abstract draw(canvas: Canvas): void;
   initialized = false;
@@ -33,5 +33,8 @@ export abstract class Layer<O extends LayerOptions = LayerOptions> {
   }
   set options(options: O) {
     this._options = options;
+  }
+  get canvaskit() {
+    return this.map?.canvaskit;
   }
 }

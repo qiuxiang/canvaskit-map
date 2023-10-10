@@ -1,14 +1,16 @@
-/** @internal */
 export function safeCeil(n: number) {
   return Math.ceil(parseFloat(n.toFixed(3)));
 }
 
-/** @internal */
-export function makeRect(x: number, y: number, width: number, height: number) {
+export function rectFromLTWH(
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
   return [x, y, x + width, y + height];
 }
 
-/** @internal */
 export function makeRSXform(
   rotation: number,
   scale: number,
@@ -25,7 +27,6 @@ export function makeRSXform(
   ];
 }
 
-/** @internal */
 export function overlays(rect: number[], other: number[]) {
   if (rect[2] <= other[0] || other[2] <= rect[0]) {
     return false;
@@ -36,7 +37,16 @@ export function overlays(rect: number[], other: number[]) {
   return true;
 }
 
-type Task = () => Promise<void>;
+export function alongSize(
+  align: [number, number],
+  size: [number, number]
+): [number, number] {
+  const centerX = size[0] / 2;
+  const centerY = size[1] / 2;
+  return [centerX + align[0] * centerX, centerY + align[1] * centerY];
+}
+
+export type Task = () => Promise<void>;
 
 export class TaskQueue {
   _queue = [] as Task[];

@@ -7,6 +7,7 @@ export interface DomLayerOptions extends LayerOptions {
 }
 
 export class DomLayer extends Layer<DomLayerOptions> {
+  /** @internal */
   _element = null as unknown as HTMLElement;
 
   constructor(options: DomLayerOptions) {
@@ -25,7 +26,7 @@ export class DomLayer extends Layer<DomLayerOptions> {
         event.stopPropagation();
       }
     });
-    this.tilemap._element.appendChild(this._element);
+    this.map!._element.appendChild(this._element);
 
     const resizeObserver = new ResizeObserver(([entry]) => {
       const { blockSize, inlineSize } = entry.borderBoxSize[0];
@@ -36,13 +37,13 @@ export class DomLayer extends Layer<DomLayerOptions> {
   }
 
   dispose() {
-    this.tilemap._element.removeChild(this._element);
+    this.map!._element.removeChild(this._element);
   }
 
   draw() {
-    const position = this.tilemap._toOffset(this._options.x, this._options.y);
-    position[0] -= this.tilemap._offset[0];
-    position[1] -= this.tilemap._offset[1];
+    const position = this.map!._toOffset(this._options.x, this._options.y);
+    position[0] -= this.map!._offset[0];
+    position[1] -= this.map!._offset[1];
     this._element.style.transform = `translate(${position[0]}px, ${position[1]}px)`;
   }
 }

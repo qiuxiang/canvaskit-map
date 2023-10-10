@@ -1,6 +1,11 @@
-import { Canvas, FontMgr, Paragraph, ParagraphStyle } from "canvaskit-wasm";
+import {
+  Canvas,
+  FontMgr,
+  Paint,
+  Paragraph,
+  ParagraphStyle,
+} from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
-import { canvaskit } from "./tilemap";
 import { TaskQueue } from "./utils";
 
 export interface TextLayerOptions extends LayerOptions {
@@ -16,26 +21,32 @@ const _queue = new TaskQueue();
 const _cache = {} as Record<string, FontMgr>;
 
 export class TextLayer extends Layer<TextLayerOptions> {
-  _paint = new canvaskit.Paint();
+  /** @internal */
+  _paint?: Paint;
+
+  /** @internal */
   _paragraph?: Paragraph;
 
   async init() {
+    this._paint = new this.canvaskit!.Paint();
     _queue.run(async () => {
       let fontMgr = _cache[this._options.fontUrl];
       if (!fontMgr) {
         const response = await fetch(this._options.fontUrl);
-        fontMgr = canvaskit.FontMgr.FromData(await response.arrayBuffer())!;
+        fontMgr = this.canvaskit!.FontMgr.FromData(
+          await response.arrayBuffer()
+        )!;
       }
-      const style = new canvaskit.ParagraphStyle(this._options.style);
-      const builder = canvaskit.ParagraphBuilder.Make(style, fontMgr);
+      const style = new this.canvaskit!.ParagraphStyle(this._options.style);
+      const builder = this.canvaskit!.ParagraphBuilder.Make(style, fontMgr);
       builder.addText(this._options.text);
       this._paragraph = builder.build();
-      this._paragraph.layout(this._options.maxWidth ?? this.tilemap._size[0]);
+      this._paragraph.layout(this._options.maxWidth ?? this.map!._size[0]);
     });
   }
 
   draw(canvas: Canvas) {
-    const [x, y] = this.tilemap._toOffset(this._options.x, this._options.y);
+    const [x, y] = this.map!._toOffset(this._options.x, this._options.y);
     if (this._paragraph) {
       canvas.drawParagraph(
         this._paragraph,

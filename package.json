@@ -1,9 +1,11 @@
 {
   "scripts": {
-    "core-build": "cd packages/core && esbuild build.ts --format=cjs | node && tsc",
-    "core-dev": "cd packages/core && ((tsc -w) & esbuild build.ts --format=cjs | node - dev)",
+    "core-build": "vite build packages/core",
+    "core-dev": "vite build packages/core -w",
     "react-build": "cd packages/react && esbuild build.ts --format=cjs | node && tsc",
     "react-dev": "cd packages/react && ((tsc -w) & esbuild build.ts --format=cjs | node - dev)",
+    "example-build": "vite build packages/example",
+    "example-dev": "vite packages/example --host",
     "publish": "pnpm publish -r --no-git-checks --access public --registry https://registry.npmjs.org"
   },
   "devDependencies": {
@@ -12,6 +14,7 @@
     "esbuild": "^0.19.2",
     "sucrase": "^3.34.0",
     "typescript": "^5.2.2",
-    "vite": "^4.4.9"
+    "vite": "^4.4.9",
+    "vite-plugin-dts": "^3.6.0"
   }
 }

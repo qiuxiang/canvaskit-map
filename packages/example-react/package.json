@@ -9,8 +9,10 @@
     "dev": "(pnpm run uno -w) & pnpm run esbuild --watch --sourcemap --serve --servedir=dist"
   },
   "dependencies": {
+    "@canvaskit-tilemap/core": "workspace:~",
     "@canvaskit-tilemap/example": "workspace:~",
     "@canvaskit-tilemap/react": "workspace:~",
+    "canvaskit-wasm": "^0.38.2",
     "preact": "^10.17.1",
     "valtio": "^1.11.2"
   },

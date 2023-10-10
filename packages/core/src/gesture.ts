@@ -3,8 +3,8 @@ import { inertia } from "popmotion";
 import { Tilemap } from "./tilemap";
 
 /** @internal */
-export class TilemapGesture {
-  _tilemap: Tilemap;
+export class MapGesture {
+  _map: Tilemap;
   _initialScale = 0;
   _lastPinchTime = 0;
   _lastWheelTime = 0;
@@ -17,11 +17,11 @@ export class TilemapGesture {
   _wheelVelocity = new Average();
   _velocityScale = new Average();
 
-  constructor(tilemap: Tilemap) {
-    this._tilemap = tilemap;
-    new Gesture(tilemap._element, {
+  constructor(map: Tilemap) {
+    this._map = map;
+    new Gesture(map._element, {
       onWheel: this._onWheel.bind(this),
-      onPinchStart: () => (this._initialScale = this._tilemap._scale),
+      onPinchStart: () => (this._initialScale = this._map._scale),
       onPinch: this._onPinch.bind(this),
       onPinchEnd: this._onPinchEnd.bind(this),
       onDragStart: this._onDragStart.bind(this),
@@ -47,7 +47,7 @@ export class TilemapGesture {
     this._offsetAnimation[1]?.stop();
     this._scaleAnimation?.stop();
     this._lastWheelTime = timeStamp;
-    const lastScale = this._tilemap._scale;
+    const lastScale = this._map._scale;
     this._wheelVelocity.add(velocity[1]);
     const v = Math.max(this._wheelVelocity.value, 0.1);
     this._scaleAnimation = inertia({
@@ -56,7 +56,7 @@ export class TilemapGesture {
       restDelta: 0.001,
       onUpdate: (value) => {
         const zoom = Math.log2(lastScale) - direction[1] * value;
-        this._tilemap._scaleTo(2 ** zoom, [event.x, event.y]);
+        this._map._scaleTo(2 ** zoom, [event.x, event.y]);
       },
     });
   }
@@ -67,14 +67,14 @@ export class TilemapGesture {
 
     this._lastPinchTime = timeStamp;
     const newScale = (da[0] / initial[0]) * this._initialScale;
-    this._velocityScale.add(newScale - this._tilemap._scale);
-    this._tilemap._scaleTo(newScale, origin);
+    this._velocityScale.add(newScale - this._map._scale);
+    this._map._scaleTo(newScale, origin);
   }
 
   _onPinchEnd({ origin }: FullGestureState<"pinch">) {
     const value = this._velocityScale.value;
     const direction = value > 0 ? -1 : 1;
-    this._initialScale = this._tilemap._scale;
+    this._initialScale = this._map._scale;
     const velocity = Math.log10(1 + Math.abs(this._velocityScale.value)) * 50;
     this._scaleAnimation?.stop();
     this._scaleAnimation = inertia({
@@ -83,7 +83,7 @@ export class TilemapGesture {
       restDelta: 0.001,
       onUpdate: (value) => {
         const zoom = Math.log2(this._initialScale) - direction * value;
-        this._tilemap._scaleTo(2 ** zoom, origin);
+        this._map._scaleTo(2 ** zoom, origin);
       },
     });
   }
@@ -104,9 +104,9 @@ export class TilemapGesture {
 
     this._velocity[0].add(velocity[0]);
     this._velocity[1].add(velocity[1]);
-    this._tilemap._setOffset([
-      this._tilemap._offset[0] - delta[0],
-      this._tilemap._offset[1] - delta[1],
+    this._map._setOffset([
+      this._map._offset[0] - delta[0],
+      this._map._offset[1] - delta[1],
     ]);
   }
 
@@ -114,7 +114,7 @@ export class TilemapGesture {
     const { direction, timeStamp, distance } = state;
     if (timeStamp - this._lastPinchTime < 200) return;
 
-    const initialOffset = [...this._tilemap._offset];
+    const initialOffset = [...this._map._offset];
     const velocity = [this._velocity[0].value, this._velocity[1].value];
     const v = Math.sqrt(velocity[0] ** 2 + velocity[1] ** 2);
     if (v != 0) {
@@ -123,7 +123,7 @@ export class TilemapGesture {
         power: 200,
         timeConstant: 200,
         onUpdate: (value) => {
-          this._tilemap._setOffset([
+          this._map._setOffset([
             initialOffset[0] - direction[0] * value * (velocity[0] / v),
             initialOffset[1] - direction[1] * value * (velocity[1] / v),
           ]);
@@ -140,7 +140,7 @@ export class TilemapGesture {
 
     const doubleClickDelay = 200;
     if (event.timeStamp - this._lastClickTime < doubleClickDelay) {
-      const lastScale = this._tilemap._scale;
+      const lastScale = this._map._scale;
       this._scaleAnimation?.stop();
       this._scaleAnimation = inertia({
         velocity: 1,
@@ -149,13 +149,13 @@ export class TilemapGesture {
         restDelta: 0.001,
         onUpdate: (value) => {
           const zoom = Math.log2(lastScale) + value;
-          this._tilemap._scaleTo(2 ** zoom, [event.x, event.y]);
+          this._map._scaleTo(2 ** zoom, [event.x, event.y]);
         },
       });
     } else {
       setTimeout(() => {
         if (event.timeStamp == this._lastClickTime) {
-          this._tilemap._onClick(event.x, event.y);
+          this._map._onClick(event.x, event.y);
         }
       }, doubleClickDelay);
     }

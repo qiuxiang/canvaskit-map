@@ -5,6 +5,18 @@
   :root {
     --un-drop-shadow-color: rgba(0, 0, 0, 0.5);
   }
+  .marker:after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid rgb(255 247 237);
+    bottom: -9px;
+    left: 50%;
+    margin-left: -10px;
+  }
 </style>
 <main id="main"></main>
 <script src="index.js"></script>

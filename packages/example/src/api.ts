@@ -51,6 +51,7 @@ class KongYingApi {
           ...i.coordinate,
           title: i.markerTitle,
           content: i.content,
+          picture: i.picture,
         })),
       };
     });
@@ -102,6 +103,7 @@ export interface Marker {
 export interface MarkerItem extends core.MarkerItem {
   title: string;
   content: string;
+  picture: string;
 }
 
 export const api = new KongYingApi();

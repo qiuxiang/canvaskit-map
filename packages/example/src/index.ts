@@ -1,15 +1,15 @@
-import {
-  initCanvaskit,
-  MarkerLayer,
-  TileLayer,
-  Tilemap,
-} from "@canvaskit-tilemap/core";
+import initCanvaskit from "canvaskit-wasm";
+import { MarkerLayer, TileLayer, Tilemap } from "@canvaskit-tilemap/core";
 import { toCanvas } from "html-to-image";
 import { api } from "./api";
 
 async function main() {
-  await initCanvaskit();
-  const tilemap = new Tilemap({
+  const canvaskit = await initCanvaskit({
+    locateFile() {
+      return "https://cdn.staticfile.org/canvaskit-wasm/0.38.2/canvaskit.wasm";
+    },
+  });
+  const tilemap = new Tilemap(canvaskit, {
     element: "#tilemap",
     mapSize: [17408, 17408],
     origin: [3568 + 5888, 6286 + 2048],

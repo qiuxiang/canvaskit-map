@@ -1,6 +1,5 @@
-import { Canvas, Image } from "canvaskit-wasm";
+import { Canvas, Image, Paint } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
-import { canvaskit } from "./tilemap";
 import { makeRSXform } from "./utils";
 
 export interface MarkerItem {
@@ -24,7 +23,7 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
   MarkerLayerOptions<T>
 > {
   /** @internal */
-  _paint = new canvaskit.Paint();
+  _paint?: Paint;
 
   /** @internal */
   _image: Image | null = null;
@@ -35,14 +34,21 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
       scale: options.scale ?? 1 / devicePixelRatio,
       anchor: options.anchor ?? [0, 0],
     });
-    if (options.image) {
-      this._image = canvaskit.MakeImageFromCanvasImageSource(options.image);
+  }
+
+  init() {
+    this._paint = new this.canvaskit!.Paint();
+    if (this.options.image) {
+      this._image = this.canvaskit!.MakeImageFromCanvasImageSource(
+        this.options.image
+      );
     }
+    super.init();
   }
 
   set image(image: CanvasImageSource) {
-    this._image = canvaskit.MakeImageFromCanvasImageSource(image);
-    this.tilemap.draw();
+    this._image = this.canvaskit!.MakeImageFromCanvasImageSource(image);
+    this.map!.draw();
   }
 
   draw(canvas: Canvas) {
@@ -55,7 +61,7 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
     let rects = [] as number[];
     let xforms = [] as number[];
     for (const item of items) {
-      const offset = this.tilemap._toOffset(item.x, item.y);
+      const offset = this.map!._toOffset(item.x, item.y);
       const i = rects.length;
       rects[i] = 0;
       rects[i + 1] = 0;
@@ -68,7 +74,7 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
       xforms[i + 3] = xform[3];
     }
 
-    canvas.drawAtlas(this._image, rects, xforms, this._paint);
+    canvas.drawAtlas(this._image, rects, xforms, this._paint!);
   }
 }
 

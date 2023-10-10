@@ -1,7 +1,6 @@
-import { Canvas, Image } from "canvaskit-wasm";
-import { canvaskit } from ".";
+import { Canvas, Image, Paint } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
-import { makeRect, safeCeil } from "./utils";
+import { rectFromLTWH, safeCeil } from "./utils";
 
 export interface TileLayerOptions extends LayerOptions {
   /**
@@ -31,7 +30,7 @@ export class TileLayer extends Layer<TileLayerOptions> {
   /** @internal */
   _images = {} as Record<string, Image>;
   /** @internal */
-  _paint = new canvaskit.Paint();
+  _paint?: Paint;
   /** @internal */
   _tasks = new TaskStack();
 
@@ -44,13 +43,14 @@ export class TileLayer extends Layer<TileLayerOptions> {
   }
 
   async init() {
+    this._paint = new this.canvaskit!.Paint();
     let { maxZoom, minZoom, tileSize, offset, getTileUrl } = this._options;
     const level = maxZoom - minZoom;
     tileSize = tileSize! * Math.pow(2, level);
     const offsetX = Math.floor(offset![0] / tileSize);
     const offsetY = Math.floor(offset![1] / tileSize);
-    const cols = safeCeil(this.tilemap._options.mapSize[0] / tileSize);
-    const rows = safeCeil(this.tilemap._options.mapSize[1] / tileSize);
+    const cols = safeCeil(this.map!._options.mapSize[0] / tileSize);
+    const rows = safeCeil(this.map!._options.mapSize[1] / tileSize);
     const promises = [] as Promise<void>[];
     for (var row = 0; row < rows; row += 1) {
       for (var col = 0; col < cols; col += 1) {
@@ -78,23 +78,24 @@ export class TileLayer extends Layer<TileLayerOptions> {
     });
   }
 
+  /** @internal */
   async _fetchImage(url: string, key: string) {
     const response = await fetch(url, {
       headers: { accept: "image/webp" },
       credentials: "omit",
     });
     const bitmap = await createImageBitmap(await response.blob());
-    const image = canvaskit.MakeImageFromCanvasImageSource(bitmap)!;
+    const image = this.canvaskit!.MakeImageFromCanvasImageSource(bitmap)!;
     this._images[key] = image;
-    this.tilemap.draw();
+    this.map!.draw();
   }
 
   draw(canvas: Canvas): void {
-    if (this.tilemap._scale == 0) return;
+    if (this.map!._scale == 0) return;
 
     const { minZoom, maxZoom } = this._options;
     this._drawTiles(canvas, minZoom);
-    let zoom = maxZoom + Math.ceil(Math.log2(this.tilemap._scale));
+    let zoom = maxZoom + Math.ceil(Math.log2(this.map!._scale));
     zoom = Math.min(Math.max(zoom, minZoom), maxZoom);
     if (zoom > minZoom) {
       this._drawTiles(canvas, zoom);
@@ -103,7 +104,7 @@ export class TileLayer extends Layer<TileLayerOptions> {
 
   /** @internal */
   _drawTiles(canvas: Canvas, zoom: number) {
-    const { _size, _scale, _offset } = this.tilemap;
+    const { _size, _scale, _offset } = this.map!;
     const level = this._options.maxZoom - zoom;
     const tileSize = this._options.tileSize! * 2 ** level;
     const tileOffset = [
@@ -125,14 +126,14 @@ export class TileLayer extends Layer<TileLayerOptions> {
         const key = `${x},${y},${zoom}`;
         const image = this._images[key];
         if (image) {
-          const src = makeRect(0, 0, image.width(), image.height());
-          const dst = makeRect(
+          const src = rectFromLTWH(0, 0, image.width(), image.height());
+          const dst = rectFromLTWH(
             scaledTileSize * (x - tileOffset[0]),
             scaledTileSize * (y - tileOffset[1]),
             scaledTileSize,
             scaledTileSize
           );
-          canvas.drawImageRect(image, src, dst, this._paint);
+          canvas.drawImageRect(image, src, dst, this._paint!);
         } else if (this.initialized) {
           this._resolveImage(url, key);
         }
@@ -143,6 +144,9 @@ export class TileLayer extends Layer<TileLayerOptions> {
 
 type Task = () => Promise<void>;
 
+/**
+ * 任务串行化，但是后进的任务先运行
+ */
 class TaskStack {
   _length = 16;
   _queue = [] as Task[];

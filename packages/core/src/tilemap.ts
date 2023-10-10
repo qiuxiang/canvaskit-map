@@ -1,28 +1,17 @@
-import init, {
-  CanvasKit,
-  CanvasKitInitOptions,
-  GrDirectContext,
-  Surface,
-} from "canvaskit-wasm";
+import { CanvasKit, GrDirectContext, Surface } from "canvaskit-wasm";
 import { debounceTime, Observable } from "rxjs";
-import { TilemapGesture } from "./gesture";
+import { MapGesture } from "./gesture";
 import { Layer } from "./layer";
 import { MarkerItem, MarkerLayer } from "./marker-layer";
-import { makeRect } from "./utils";
+import { alongSize, rectFromLTWH } from "./utils";
 
-export let canvaskit: CanvasKit;
-
-export async function initCanvaskit(opts?: CanvasKitInitOptions) {
-  canvaskit = await init(opts);
-}
-
-export interface TilemapClickEvent {
+export interface MapClickEvent {
   coordinate: [number, number];
   markerLayer?: MarkerLayer;
   markerItem?: MarkerItem;
 }
 
-export interface TilemapOptions {
+export interface MapOptions {
   /**
    * 入口节点，支持 selector 和 element
    */
@@ -45,12 +34,12 @@ export interface TilemapOptions {
 
   onMove?: () => void;
   onReady?: (tilemap: Tilemap) => void;
-  onClick?: (event: TilemapClickEvent) => void;
+  onClick?: (event: MapClickEvent) => void;
 }
 
 export class Tilemap {
   /** @internal */
-  _options: TilemapOptions;
+  _options: MapOptions;
   /** @internal */
   _element: HTMLElement;
   /** @internal */
@@ -63,7 +52,7 @@ export class Tilemap {
   /** @internal */
   _context: GrDirectContext;
   /** @internal */
-  _gesture: TilemapGesture;
+  _gesture: MapGesture;
   /** @internal */
   _minZoom = 0;
   /** @internal */
@@ -80,7 +69,7 @@ export class Tilemap {
   /** @internal */
   _scale = 0;
 
-  constructor(options: TilemapOptions) {
+  constructor(public canvaskit: CanvasKit, options: MapOptions) {
     this._options = {
       ...options,
       maxZoom: options.maxZoom ?? 0,
@@ -99,7 +88,7 @@ export class Tilemap {
     )!;
     this._element.appendChild(this._canvasElement);
 
-    this._gesture = new TilemapGesture(this);
+    this._gesture = new MapGesture(this);
     this._initResizeObserver();
     this._resize([this._element.clientWidth, this._element.clientHeight]);
     this._drawFrame();
@@ -128,11 +117,11 @@ export class Tilemap {
     this._canvasElement.height = size[1] * devicePixelRatio;
     this._canvasElement.style.width = `${size[0]}px`;
     this._canvasElement.style.height = `${size[1]}px`;
-    this._surface = canvaskit.MakeOnScreenGLSurface(
+    this._surface = this.canvaskit.MakeOnScreenGLSurface(
       this._context,
       size[0] * devicePixelRatio,
       size[1] * devicePixelRatio,
-      canvaskit.ColorSpace.SRGB
+      this.canvaskit.ColorSpace.SRGB
     )!;
     this._size = size;
     const minScale = Math.max(
@@ -193,7 +182,7 @@ export class Tilemap {
   }
 
   addLayer(layer: Layer) {
-    layer.tilemap = this;
+    layer.map = this;
     this._layers.add(layer);
     if (this._initialized) {
       layer.init();
@@ -212,11 +201,13 @@ export class Tilemap {
     if (this._dirty) {
       const canvas = this._surface.getCanvas();
       // 重置 matrix
-      canvas.concat(canvaskit.Matrix.invert(canvas.getTotalMatrix())!);
+      canvas.concat(this.canvaskit.Matrix.invert(canvas.getTotalMatrix())!);
       // 因为 scale 有原点，必须先 scale 后 translate
       canvas.scale(devicePixelRatio, devicePixelRatio);
       canvas.translate(-this._offset[0], -this._offset[1]);
-      const layers = [...this._layers].filter((i) => !i.options.hidden);
+      const layers = [...this._layers].filter(
+        (i) => i.initialized && !i.options.hidden
+      );
       layers.sort((a, b) => a.zIndex - b.zIndex);
       for (const layer of layers) {
         layer.draw(canvas);
@@ -293,20 +284,11 @@ export class Tilemap {
   }
 
   get visibleRect() {
-    return makeRect(
+    return rectFromLTWH(
       this._offset[0],
       this._offset[1],
       this._size[0],
       this._size[1]
     );
   }
-}
-
-function alongSize(
-  align: [number, number],
-  size: [number, number]
-): [number, number] {
-  const centerX = size[0] / 2;
-  const centerY = size[1] / 2;
-  return [centerX + align[0] * centerX, centerY + align[1] * centerY];
 }

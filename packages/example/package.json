@@ -3,12 +3,9 @@
   "name": "@canvaskit-tilemap/example",
   "version": "0.0.1",
   "main": "src/api",
-  "scripts": {
-    "build": "esbuild --bundle --minify --external:fs --external:path --outdir=dist src/index.ts",
-    "dev": "pnpm run build --watch --sourcemap --serve --servedir=dist"
-  },
   "dependencies": {
     "@canvaskit-tilemap/core": "workspace:~",
+    "canvaskit-wasm": "^0.38.2",
     "html-to-image": "^1.11.11"
   }
 }
