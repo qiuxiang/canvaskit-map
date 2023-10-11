@@ -81,11 +81,11 @@ export class Tilemap {
       this._element = options.element;
     }
     this._canvasElement = document.createElement("canvas");
-    this._canvasElement.style.touchAction = "none";
     this._canvasElement.style.position = "absolute";
     this._context = canvaskit.MakeWebGLContext(
       canvaskit.GetWebGLContext(this._canvasElement)
     )!;
+    this._element.style.touchAction = "none";
     this._element.appendChild(this._canvasElement);
 
     this._gesture = new MapGesture(this);
