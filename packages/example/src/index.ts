@@ -1,5 +1,10 @@
 import initCanvaskit from "canvaskit-wasm";
-import { MarkerLayer, TileLayer, Tilemap } from "@canvaskit-tilemap/core";
+import {
+  MarkerLayer,
+  TileLayer,
+  Tilemap,
+  TaskQueue,
+} from "@canvaskit-tilemap/core";
 import { toCanvas } from "html-to-image";
 import { api } from "./api";
 
@@ -31,6 +36,7 @@ async function main() {
     typeIdList: [5],
   });
   const $markers = document.querySelector("#markers")!;
+  const queue = new TaskQueue();
   for (const { icon, items } of markers) {
     const element = document.createElement("div");
     element.innerHTML = `
@@ -41,11 +47,13 @@ async function main() {
     $markers.append(element);
     const image = element.querySelector("img")!;
     image.addEventListener("load", async () => {
-      const size = { width: 26, height: 26 };
-      const image = await toCanvas(element, size);
-      tilemap.addLayer(
-        new MarkerLayer({ items, image, scale: 1 / devicePixelRatio })
-      );
+      queue.run(async () => {
+        const size = { width: 26, height: 26 };
+        const image = await toCanvas(element, size);
+        tilemap.addLayer(
+          new MarkerLayer({ items, image, scale: 1 / devicePixelRatio })
+        );
+      });
     });
   }
 }
