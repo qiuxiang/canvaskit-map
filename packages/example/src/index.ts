@@ -8,6 +8,8 @@ import {
 import { toCanvas } from "html-to-image";
 import { api } from "./api";
 
+const isSafari = navigator.userAgent.indexOf("iPhone") != -1;
+
 async function main() {
   const canvaskit = await initCanvaskit({
     locateFile() {
@@ -49,6 +51,10 @@ async function main() {
     image.addEventListener("load", async () => {
       queue.run(async () => {
         const size = { width: 26, height: 26 };
+        if (isSafari) {
+          // sb safari
+          await toCanvas(element, size);
+        }
         const image = await toCanvas(element, size);
         tilemap.addLayer(
           new MarkerLayer({ items, image, scale: 1 / devicePixelRatio })
