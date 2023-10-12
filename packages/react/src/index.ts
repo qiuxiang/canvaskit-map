@@ -1,4 +1,3 @@
-export { initCanvaskit } from "@canvaskit-tilemap/core";
 export * from "./custom-layer";
 export * from "./dom-layer";
 export * from "./hooks";

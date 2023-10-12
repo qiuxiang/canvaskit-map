@@ -2,10 +2,12 @@
   "scripts": {
     "core-build": "vite build packages/core",
     "core-dev": "vite build packages/core -w",
-    "react-build": "cd packages/react && esbuild build.ts --format=cjs | node && tsc",
-    "react-dev": "cd packages/react && ((tsc -w) & esbuild build.ts --format=cjs | node - dev)",
+    "react-build": "vite build packages/react",
+    "react-dev": "vite build packages/react -w",
     "example-build": "vite build packages/example",
     "example-dev": "vite packages/example --host",
+    "example-react-build": "vite build packages/example-react",
+    "example-react-dev": "vite packages/example-react --host",
     "publish": "pnpm publish -r --no-git-checks --access public --registry https://registry.npmjs.org"
   },
   "devDependencies": {

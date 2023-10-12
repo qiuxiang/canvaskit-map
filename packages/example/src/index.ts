@@ -50,7 +50,7 @@ async function main() {
     const image = element.querySelector("img")!;
     image.addEventListener("load", async () => {
       queue.run(async () => {
-        const size = { width: 26, height: 26 };
+        const size = { width: 28, height: 28 };
         if (isSafari) {
           // sb safari
           await toCanvas(element, size);
