@@ -1,5 +1,5 @@
 import { FullGestureState, Gesture } from "@use-gesture/vanilla";
-import { inertia } from "popmotion";
+import { inertia, animate, easeOut, easeInOut } from "popmotion";
 import { Tilemap } from "./tilemap";
 
 /** @internal */
@@ -13,9 +13,7 @@ export class MapGesture {
 
   _scaleAnimation = inertia({});
   _offsetAnimation = [inertia({}), inertia({})];
-  _velocity = [new Average(), new Average()];
-  _wheelVelocity = new Average();
-  _velocityScale = new Average();
+  _scaleVelocity = 0;
 
   constructor(map: Tilemap) {
     this._map = map;
@@ -31,25 +29,16 @@ export class MapGesture {
     });
   }
 
-  _onWheel({
-    direction,
-    event,
-    timeStamp,
-    velocity,
-    first,
-  }: FullGestureState<"wheel">) {
+  _onWheel(state: FullGestureState<"wheel">) {
+    const { direction, event, timeStamp, velocity } = state;
     if (timeStamp == this._lastWheelTime) return;
-    if (first) {
-      this._wheelVelocity.clear();
-    }
 
     this._offsetAnimation[0]?.stop();
     this._offsetAnimation[1]?.stop();
     this._scaleAnimation?.stop();
     this._lastWheelTime = timeStamp;
     const lastScale = this._map._scale;
-    this._wheelVelocity.add(velocity[1]);
-    const v = Math.max(this._wheelVelocity.value, 0.1);
+    const v = Math.max(velocity[1], 0.01);
     this._scaleAnimation = inertia({
       velocity: Math.log2(1 + Math.abs(v) / 10),
       timeConstant: 50,
@@ -67,20 +56,21 @@ export class MapGesture {
 
     this._lastPinchTime = timeStamp;
     const newScale = (da[0] / initial[0]) * this._initialScale;
-    this._velocityScale.add(newScale - this._map._scale);
+    this._scaleVelocity = newScale - this._map._scale;
     this._map._scaleTo(newScale, origin);
   }
 
   _onPinchEnd({ origin }: FullGestureState<"pinch">) {
-    const value = this._velocityScale.value;
-    const direction = value > 0 ? -1 : 1;
+    let velocity = this._scaleVelocity;
+    const direction = velocity > 0 ? -1 : 1;
+    velocity = Math.log2(1 + Math.abs(this._scaleVelocity));
     this._initialScale = this._map._scale;
-    const velocity = Math.log10(1 + Math.abs(this._velocityScale.value)) * 50;
     this._scaleAnimation?.stop();
     this._scaleAnimation = inertia({
-      velocity: velocity,
-      timeConstant: 50,
-      restDelta: 0.001,
+      velocity,
+      power: 50,
+      timeConstant: 100,
+      restDelta: 0.005,
       onUpdate: (value) => {
         const zoom = Math.log2(this._initialScale) - direction * value;
         this._map._scaleTo(2 ** zoom, origin);
@@ -92,18 +82,14 @@ export class MapGesture {
     this._offsetAnimation[0]?.stop();
     this._offsetAnimation[1]?.stop();
     this._scaleAnimation?.stop();
-    this._velocity[0].clear();
-    this._velocity[1].clear();
   }
 
   _onDrag(state: FullGestureState<"drag">) {
-    const { pinching, wheeling, timeStamp, velocity, delta } = state;
+    const { pinching, wheeling, timeStamp, delta } = state;
     if (pinching || wheeling || timeStamp - this._lastPinchTime < 200) {
       return;
     }
 
-    this._velocity[0].add(velocity[0]);
-    this._velocity[1].add(velocity[1]);
     this._map._setOffset([
       this._map._offset[0] - delta[0],
       this._map._offset[1] - delta[1],
@@ -111,11 +97,10 @@ export class MapGesture {
   }
 
   async _onDragEnd(state: FullGestureState<"drag">) {
-    const { direction, timeStamp, distance } = state;
+    const { direction, timeStamp, distance, velocity } = state;
     if (timeStamp - this._lastPinchTime < 200) return;
 
     const initialOffset = [...this._map._offset];
-    const velocity = [this._velocity[0].value, this._velocity[1].value];
     const v = Math.sqrt(velocity[0] ** 2 + velocity[1] ** 2);
     if (v != 0) {
       this._offsetAnimation[0] = inertia({
@@ -142,11 +127,8 @@ export class MapGesture {
     if (event.timeStamp - this._lastClickTime < doubleClickDelay) {
       const lastScale = this._map._scale;
       this._scaleAnimation?.stop();
-      this._scaleAnimation = inertia({
-        velocity: 1,
-        power: 1,
-        timeConstant: 100,
-        restDelta: 0.001,
+      this._scaleAnimation = animate({
+        ease: easeInOut,
         onUpdate: (value) => {
           const zoom = Math.log2(lastScale) + value;
           this._map._scaleTo(2 ** zoom, [event.x, event.y]);
@@ -160,33 +142,5 @@ export class MapGesture {
       }, doubleClickDelay);
     }
     this._lastClickTime = event.timeStamp;
-  }
-}
-
-class Average {
-  _count = 0;
-  _length = 0;
-  _values: number[] = [];
-
-  constructor(length = 3) {
-    this._length = length;
-  }
-
-  add(value: number) {
-    this._values[this._count % this._length] = value;
-    this._count += 1;
-  }
-
-  clear() {
-    this._values = Array(length);
-  }
-
-  get value() {
-    const values = this._values.filter((i) => i != undefined);
-    if (values.length == 0) {
-      return 0;
-    } else {
-      return values.reduce((value, i) => value + i, 0) / values.length;
-    }
   }
 }
