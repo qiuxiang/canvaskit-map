@@ -1,5 +1,5 @@
 import { FullGestureState, Gesture } from "@use-gesture/vanilla";
-import { inertia, animate, easeOut, easeInOut } from "popmotion";
+import { animate, easeInOut, inertia } from "popmotion";
 import { Tilemap } from "./tilemap";
 
 /** @internal */
@@ -63,7 +63,7 @@ export class MapGesture {
   _onPinchEnd({ origin }: FullGestureState<"pinch">) {
     let velocity = this._scaleVelocity;
     const direction = velocity > 0 ? -1 : 1;
-    velocity = Math.log2(1 + Math.abs(this._scaleVelocity));
+    velocity = Math.min(Math.log2(1 + Math.abs(this._scaleVelocity)), 0.05);
     this._initialScale = this._map._scale;
     this._scaleAnimation?.stop();
     this._scaleAnimation = inertia({
@@ -96,7 +96,7 @@ export class MapGesture {
     ]);
   }
 
-  async _onDragEnd(state: FullGestureState<"drag">) {
+  _onDragEnd(state: FullGestureState<"drag">) {
     const { direction, timeStamp, distance, velocity } = state;
     if (timeStamp - this._lastPinchTime < 200) return;
 

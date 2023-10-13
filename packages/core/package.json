@@ -1,6 +1,6 @@
 {
   "name": "@canvaskit-tilemap/core",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "author": "7c00 <i@7c00.cc>",
   "type": "module",
   "main": "dist",
