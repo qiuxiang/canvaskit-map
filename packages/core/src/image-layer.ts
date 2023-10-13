@@ -17,7 +17,6 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
 
   constructor(options: ImageLayerOptions) {
     super(options);
-    this._setOpacity();
   }
 
   get options() {
@@ -52,6 +51,7 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
       this._images[zoom] =
         this.canvaskit!.MakeImageFromCanvasImageSource(_image);
     }
+    this._setOpacity();
     this.map!.draw();
   }
 

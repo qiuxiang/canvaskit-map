@@ -91,9 +91,7 @@ export function Main() {
           </div>
         </DomLayer>
       )}
-      {/*
       <UndergroundMaps />
-      */}
     </Tilemap>
   );
 }
@@ -109,6 +107,7 @@ function UndergroundMaps() {
       {undergroundMaps.flatMap(({ overlays, urlTemplate }) => {
         return overlays.map((i: any) => {
           const { chunks } = i.children[0];
+          if (!chunks) return null;
           return (
             <>
               {chunks.map((i: any) => {
@@ -133,6 +132,9 @@ class MaskLayer extends Layer {
 
   constructor() {
     super({ zIndex: 0 });
+  }
+
+  async init() {
     this._paint = new this.canvaskit!.Paint();
     this._paint.setColor(this.canvaskit!.Color(0, 0, 0, 0.7));
   }

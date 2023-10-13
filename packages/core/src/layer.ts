@@ -20,10 +20,9 @@ export abstract class Layer<O extends LayerOptions = LayerOptions> {
   map?: Tilemap;
   constructor(public _options: O) {}
   abstract draw(canvas: Canvas): void;
-  initialized = false;
-  init() {
-    this.initialized = true;
-  }
+  /** @internal */
+  _initialized = false;
+  async init() {}
   dispose() {}
   get zIndex() {
     return this._options.zIndex ?? 0;

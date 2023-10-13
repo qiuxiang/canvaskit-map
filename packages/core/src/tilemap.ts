@@ -185,7 +185,9 @@ export class Tilemap {
     layer.map = this;
     this._layers.add(layer);
     if (this._initialized) {
-      layer.init();
+      layer.init().then(() => {
+        layer._initialized = true;
+      });
     }
     this.draw();
   }
@@ -206,7 +208,7 @@ export class Tilemap {
       canvas.scale(devicePixelRatio, devicePixelRatio);
       canvas.translate(-this._offset[0], -this._offset[1]);
       const layers = [...this._layers].filter(
-        (i) => i.initialized && !i.options.hidden
+        (i) => i._initialized && !i.options.hidden
       );
       layers.sort((a, b) => a.zIndex - b.zIndex);
       for (const layer of layers) {

@@ -64,7 +64,6 @@ export class TileLayer extends Layer<TileLayerOptions> {
     const options = this._options;
     await Promise.all(promises);
     this._options = options;
-    super.init();
   }
 
   /** @internal */
@@ -134,7 +133,7 @@ export class TileLayer extends Layer<TileLayerOptions> {
             scaledTileSize
           );
           canvas.drawImageRect(image, src, dst, this._paint!);
-        } else if (this.initialized) {
+        } else if (this._initialized) {
           this._resolveImage(url, key);
         }
       }

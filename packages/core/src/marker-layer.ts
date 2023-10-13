@@ -36,14 +36,13 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
     });
   }
 
-  init() {
+  async init() {
     this._paint = new this.canvaskit!.Paint();
     if (this.options.image) {
       this._image = this.canvaskit!.MakeImageFromCanvasImageSource(
         this.options.image
       );
     }
-    super.init();
   }
 
   set image(image: CanvasImageSource) {
