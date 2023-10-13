@@ -14,7 +14,7 @@ export class DomLayer extends Layer<DomLayerOptions> {
     super(options);
   }
 
-  init() {
+  async init() {
     this._element = document.createElement("div");
     this._element.style.position = "absolute";
     this._element.style.top = "0";
@@ -38,6 +38,19 @@ export class DomLayer extends Layer<DomLayerOptions> {
 
   dispose() {
     this.map!._element.removeChild(this._element!);
+  }
+
+  get options() {
+    return this._options;
+  }
+
+  set options(options: DomLayerOptions) {
+    if (options.hidden) {
+      this._element!.style.zIndex = "-1";
+    } else {
+      this._element!.style.zIndex = "0";
+    }
+    this._options = options;
   }
 
   draw() {

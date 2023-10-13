@@ -18,7 +18,7 @@ export function DomLayer({ className, children, ...options }: DomLayerProps) {
     <div
       ref={element}
       className={className}
-      style={{ visibility: element.current ? "visible" : "hidden" }}
+      style={{ display: element.current ? "block" : "none" }}
     >
       {children}
     </div>
