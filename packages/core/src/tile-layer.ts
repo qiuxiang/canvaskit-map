@@ -30,6 +30,8 @@ export class TileLayer extends Layer<TileLayerOptions> {
   /** @internal */
   _images = {} as Record<string, Image>;
   /** @internal */
+  _loading = {} as Record<string, boolean>;
+  /** @internal */
   _paint?: Paint;
   /** @internal */
   _tasks = new TaskStack();
@@ -51,18 +53,14 @@ export class TileLayer extends Layer<TileLayerOptions> {
     const offsetY = Math.floor(offset![1] / tileSize);
     const cols = safeCeil(this.map!._options.mapSize[0] / tileSize);
     const rows = safeCeil(this.map!._options.mapSize[1] / tileSize);
-    const promises = [] as Promise<void>[];
     for (var row = 0; row < rows; row += 1) {
       for (var col = 0; col < cols; col += 1) {
         const x = col + offsetX;
         const y = row + offsetY;
-        promises.push(
-          this._fetchImage(getTileUrl(x, y, minZoom), `${x},${y},${minZoom}`)
-        );
+        this._fetchImage(getTileUrl(x, y, minZoom), `${x},${y},${minZoom}`);
       }
     }
     const options = this._options;
-    await Promise.all(promises);
     this._options = options;
   }
 
@@ -79,6 +77,9 @@ export class TileLayer extends Layer<TileLayerOptions> {
 
   /** @internal */
   async _fetchImage(url: string, key: string) {
+    if (this._loading[url]) return;
+
+    this._loading[url] = true;
     const response = await fetch(url, {
       headers: { accept: "image/webp" },
       credentials: "omit",
