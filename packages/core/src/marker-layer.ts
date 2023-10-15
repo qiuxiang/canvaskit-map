@@ -10,7 +10,7 @@ export interface MarkerItem {
 export interface MarkerLayerOptions<T extends MarkerItem = MarkerItem>
   extends LayerOptions {
   items: T[];
-  image?: CanvasImageSource;
+  image?: CanvasImageSource | Image;
   /**
    * 缩放，默认取 1 / devicePixelRatio
    */
@@ -39,14 +39,22 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
   async init() {
     this._paint = new this.canvaskit!.Paint();
     if (this.options.image) {
+      this._setImage(this.options.image);
+    }
+  }
+
+  _setImage(image: CanvasImageSource | Image) {
+    if ((image as Image).getImageInfo) {
+      this._image = image as Image;
+    } else {
       this._image = this.canvaskit!.MakeImageFromCanvasImageSource(
-        this.options.image
+        image as CanvasImageSource
       );
     }
   }
 
-  set image(image: CanvasImageSource) {
-    this._image = this.canvaskit!.MakeImageFromCanvasImageSource(image);
+  set image(image: CanvasImageSource | Image) {
+    this._setImage(image);
     this.map!.draw();
   }
 
