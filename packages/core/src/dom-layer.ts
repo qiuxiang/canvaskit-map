@@ -20,6 +20,7 @@ export class DomLayer extends Layer<DomLayerOptions> {
     this._element.style.top = "0";
     this._element.style.left = "0";
     this._element.style.touchAction = "none";
+    this._element.style.willChange = "transform";
     this._element.appendChild(this._options.element);
     this._element.addEventListener("click", (event) => {
       if (event.target != this._element) {

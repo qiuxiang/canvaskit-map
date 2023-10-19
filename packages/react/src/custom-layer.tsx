@@ -1,4 +1,4 @@
-import { Layer } from "@canvaskit-tilemap/core";
+import { Layer } from "@canvaskit-map/core";
 import { useLayer } from "./hooks";
 
 export interface CustomLayerProps<L extends Layer> {

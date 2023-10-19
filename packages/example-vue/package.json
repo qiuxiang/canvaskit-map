@@ -4,8 +4,8 @@
     "dev": "vite dev --host"
   },
   "dependencies": {
-    "@canvaskit-tilemap/example": "workspace:~",
-    "@canvaskit-tilemap/vue": "workspace:~",
+    "@canvaskit-map/example": "workspace:~",
+    "@canvaskit-map/vue": "workspace:~",
     "canvaskit-wasm": "^0.38.2",
     "vue": "^3.3.4"
   },

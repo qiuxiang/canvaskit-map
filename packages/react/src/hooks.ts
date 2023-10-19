@@ -1,25 +1,25 @@
-import { Layer, LayerOptions, Tilemap } from "@canvaskit-tilemap/core";
+import { Layer, LayerOptions, CanvaskitMap } from "@canvaskit-map/core";
 import { useContext, useEffect, useState } from "react";
-import { TilemapContext } from "./tilemap";
+import { MapContext } from "./map";
 
-export function useTilemap() {
-  return useContext(TilemapContext)!;
+export function useCanvaskitMap() {
+  return useContext(MapContext)!;
 }
 
 export function useLayer<P extends LayerOptions, L extends Layer>(
-  createLayer: (tilemap: Tilemap) => L,
+  createLayer: (map: CanvaskitMap) => L,
   props: P
 ) {
-  const tilemap = useTilemap();
+  const map = useCanvaskitMap();
   let [layer, setLayer] = useState<L | null>(null);
 
   useEffect(() => {
-    layer = createLayer(tilemap);
+    layer = createLayer(map);
     setLayer(layer);
-    tilemap.addLayer(layer);
+    map.addLayer(layer);
     return () => {
       if (layer) {
-        tilemap.removeLayer(layer);
+        map.removeLayer(layer);
       }
     };
   }, []);
@@ -27,7 +27,7 @@ export function useLayer<P extends LayerOptions, L extends Layer>(
   useEffect(() => {
     if (layer) {
       layer.options = { ...layer.options, ...props };
-      tilemap.draw();
+      map.draw();
     }
   }, Object.values(props));
 

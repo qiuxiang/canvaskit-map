@@ -33,11 +33,11 @@ export interface MapOptions {
   maxZoom?: number;
 
   onMove?: () => void;
-  onReady?: (tilemap: Tilemap) => void;
+  onReady?: (tilemap: CanvaskitMap) => void;
   onClick?: (event: MapClickEvent) => void;
 }
 
-export class Tilemap {
+export class CanvaskitMap {
   /** @internal */
   _options: MapOptions;
   /** @internal */

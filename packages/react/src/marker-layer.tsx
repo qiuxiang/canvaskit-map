@@ -1,4 +1,4 @@
-import * as core from "@canvaskit-tilemap/core";
+import * as core from "@canvaskit-map/core";
 import { Image } from "canvaskit-wasm";
 import { toCanvas } from "html-to-image";
 import { ReactNode, useRef } from "react";
@@ -23,7 +23,7 @@ export function MarkerLayer<T extends core.MarkerItem>({
   ...options
 }: MarkerLayerProps<T>) {
   const element = useRef<HTMLDivElement>(null);
-  useLayer((tilemap) => {
+  useLayer((map) => {
     const layer = new core.MarkerLayer<T>(options);
     _queue.run(async () => {
       function setImage(image: Image) {
@@ -41,7 +41,7 @@ export function MarkerLayer<T extends core.MarkerItem>({
           await toCanvas(element.current!);
         }
         const canvas = await toCanvas(element.current!);
-        setImage(tilemap.canvaskit.MakeImageFromCanvasImageSource(canvas));
+        setImage(map.canvaskit.MakeImageFromCanvasImageSource(canvas));
       }
     });
     return layer;

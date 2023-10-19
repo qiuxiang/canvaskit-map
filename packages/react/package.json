@@ -1,6 +1,6 @@
 {
-  "name": "@canvaskit-tilemap/react",
-  "version": "0.5.0",
+  "name": "@canvaskit-map/react",
+  "version": "0.5.1",
   "author": "7c00 <i@7c00.cc>",
   "main": "dist",
   "type": "module",
@@ -9,7 +9,7 @@
     "dist"
   ],
   "dependencies": {
-    "@canvaskit-tilemap/core": "workspace:~",
+    "@canvaskit-map/core": "workspace:~",
     "canvaskit-wasm": "^0.38.2",
     "html-to-image": "^1.11.11"
   },

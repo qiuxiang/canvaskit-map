@@ -1,10 +1,10 @@
 {
   "private": true,
-  "name": "@canvaskit-tilemap/example",
+  "name": "@canvaskit-map/example",
   "version": "0.0.1",
   "main": "src/api",
   "dependencies": {
-    "@canvaskit-tilemap/core": "workspace:~",
+    "@canvaskit-map/core": "workspace:~",
     "canvaskit-wasm": "^0.38.2",
     "html-to-image": "^1.11.11"
   }

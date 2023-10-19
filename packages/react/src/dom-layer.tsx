@@ -1,5 +1,5 @@
-import * as core from "@canvaskit-tilemap/core";
-import { DomLayerOptions } from "@canvaskit-tilemap/core";
+import * as core from "@canvaskit-map/core";
+import { DomLayerOptions } from "@canvaskit-map/core";
 import { ReactNode, useRef } from "react";
 import { useLayer } from "./hooks";
 

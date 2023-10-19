@@ -1,10 +1,10 @@
-import initCanvaskit from "canvaskit-wasm";
 import {
+  CanvaskitMap,
   MarkerLayer,
-  TileLayer,
-  Tilemap,
   TaskQueue,
-} from "@canvaskit-tilemap/core";
+  TileLayer,
+} from "@canvaskit-map/core";
+import initCanvaskit from "canvaskit-wasm";
 import { toCanvas } from "html-to-image";
 import { api } from "./api";
 
@@ -16,13 +16,13 @@ async function main() {
       return "https://cdn.staticfile.org/canvaskit-wasm/0.38.2/canvaskit.wasm";
     },
   });
-  const tilemap = new Tilemap(canvaskit, {
-    element: "#tilemap",
+  const map = new CanvaskitMap(canvaskit, {
+    element: "#map",
     mapSize: [17408, 17408],
     origin: [3568 + 5888, 6286 + 2048],
     maxZoom: 1,
   });
-  tilemap.addLayer(
+  map.addLayer(
     new TileLayer({
       minZoom: 10,
       maxZoom: 13,
@@ -56,7 +56,7 @@ async function main() {
           await toCanvas(element, size);
         }
         const image = await toCanvas(element, size);
-        tilemap.addLayer(
+        map.addLayer(
           new MarkerLayer({ items, image, scale: 1 / devicePixelRatio })
         );
       });

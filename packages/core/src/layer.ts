@@ -1,5 +1,5 @@
 import { Canvas } from "canvaskit-wasm";
-import { Tilemap } from "./tilemap";
+import { CanvaskitMap } from "./map";
 
 export interface LayerOptions {
   /**
@@ -17,7 +17,7 @@ export abstract class Layer<O extends LayerOptions = LayerOptions> {
   /**
    * addLayer 时由 tilemap 赋值
    */
-  map?: Tilemap;
+  map?: CanvaskitMap;
   constructor(public _options: O) {}
   abstract draw(canvas: Canvas): void;
   /** @internal */

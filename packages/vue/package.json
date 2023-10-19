@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@canvaskit-tilemap/vue",
+  "name": "@canvaskit-map/vue",
   "version": "0.0.1",
   "main": "dist",
   "type": "module",
@@ -9,7 +9,7 @@
     "dev": "vite build -w --emptyOutDir false"
   },
   "dependencies": {
-    "@canvaskit-tilemap/core": "workspace:~",
+    "@canvaskit-map/core": "workspace:~",
     "html-to-image": "^1.11.11"
   },
   "peerDependencies": {

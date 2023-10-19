@@ -1,4 +1,4 @@
-import * as core from "@canvaskit-tilemap/core";
+import * as core from "@canvaskit-map/core";
 
 class KongYingApi {
   baseUrl = "https://cloud.yuanshen.site";

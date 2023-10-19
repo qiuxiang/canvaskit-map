@@ -1,13 +1,13 @@
-import { Layer } from "@canvaskit-tilemap/core";
-import { api, Marker, MarkerItem } from "@canvaskit-tilemap/example";
+import { Layer } from "@canvaskit-map/core";
+import { api, Marker, MarkerItem } from "@canvaskit-map/example";
 import {
+  CanvaskitMap,
   CustomLayer,
   DomLayer,
   ImageLayer,
   MarkerLayer,
   TileLayer,
-  Tilemap,
-} from "@canvaskit-tilemap/react";
+} from "@canvaskit-map/react";
 import initCanvaskit, { Canvas, CanvasKit, Paint } from "canvaskit-wasm";
 import { useEffect, useState } from "react";
 
@@ -38,7 +38,7 @@ export function Main() {
 
   const tileOffset: [number, number] = [-5888, -2048];
   return (
-    <Tilemap
+    <CanvaskitMap
       canvaskit={canvaskit}
       className="fixed w-full h-full left-0 top-0"
       mapSize={[17408, 17408]}
@@ -92,7 +92,7 @@ export function Main() {
         </DomLayer>
       )}
       <UndergroundMaps />
-    </Tilemap>
+    </CanvaskitMap>
   );
 }
 

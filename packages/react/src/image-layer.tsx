@@ -1,4 +1,4 @@
-import * as core from "@canvaskit-tilemap/core";
+import * as core from "@canvaskit-map/core";
 import { useLayer } from "./hooks";
 
 export interface ImageLayerProps extends core.ImageLayerOptions {}

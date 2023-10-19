@@ -1,12 +1,12 @@
 {
   "private": true,
-  "name": "@canvaskit-tilemap/example-react",
+  "name": "@canvaskit-map/example-react",
   "version": "0.0.1",
   "main": "src/main",
   "dependencies": {
-    "@canvaskit-tilemap/core": "workspace:~",
-    "@canvaskit-tilemap/example": "workspace:~",
-    "@canvaskit-tilemap/react": "workspace:~",
+    "@canvaskit-map/core": "workspace:~",
+    "@canvaskit-map/example": "workspace:~",
+    "@canvaskit-map/react": "workspace:~",
     "canvaskit-wasm": "^0.38.2",
     "preact": "^10.17.1",
     "valtio": "^1.11.2"

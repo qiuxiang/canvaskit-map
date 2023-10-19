@@ -1,10 +1,10 @@
 import { FullGestureState, Gesture } from "@use-gesture/vanilla";
 import { animate, easeInOut, inertia } from "popmotion";
-import { Tilemap } from "./tilemap";
+import { CanvaskitMap } from "./map";
 
 /** @internal */
 export class MapGesture {
-  _map: Tilemap;
+  _map: CanvaskitMap;
   _initialScale = 0;
   _lastPinchTime = 0;
   _lastWheelTime = 0;
@@ -15,7 +15,7 @@ export class MapGesture {
   _offsetAnimation = [inertia({}), inertia({})];
   _scaleVelocity = 0;
 
-  constructor(map: Tilemap) {
+  constructor(map: CanvaskitMap) {
     this._map = map;
     new Gesture(map._element, {
       onWheel: this._onWheel.bind(this),
