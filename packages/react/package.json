@@ -1,6 +1,6 @@
 {
   "name": "@canvaskit-map/react",
-  "version": "0.5.1",
+  "version": "0.0.1",
   "author": "7c00 <i@7c00.cc>",
   "main": "dist",
   "type": "module",
