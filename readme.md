@@ -38,9 +38,7 @@ Layer 也如此。
 `<CanvaskitMap>` 里的 Layer 会自动在 mount 时 `addLayer`，umount 时
 `removeLayer`。
 
-### 快速上手
-
-```typescriptreact
+```tsx
 import React, { useState, useEffect } from "react";
 import { CanvaskitMap, TileLayer } from "@canvaskit-map/react";
 import initCanvaskit from "canvaskit-wasm";
@@ -82,10 +80,10 @@ function Example() {
 
 ### MarkerLayer
 
-与 core 不一样的是，react 的 MarkerLayer 用 children 作为 image,
-极大方便了复杂 image 的构建。
+与 core 不一样，react 的 MarkerLayer 用 children 作为 image，极大方便了复杂
+image 的构建。
 
-```typescriptreact
+```tsx
 <MarkerLayer
   items={[{x: 0, y: 0}]}
   anchor={[0, 1]}
