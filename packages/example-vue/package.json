@@ -6,7 +6,7 @@
   "dependencies": {
     "@canvaskit-map/example": "workspace:~",
     "@canvaskit-map/vue": "workspace:~",
-    "canvaskit-wasm": "^0.38.2",
+    "canvaskit-wasm": "^0.39.1",
     "vue": "^3.3.4"
   },
   "devDependencies": {

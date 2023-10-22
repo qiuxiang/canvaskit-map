@@ -7,7 +7,7 @@
     "@canvaskit-map/core": "workspace:~",
     "@canvaskit-map/example": "workspace:~",
     "@canvaskit-map/react": "workspace:~",
-    "canvaskit-wasm": "^0.38.2",
+    "canvaskit-wasm": "^0.39.1",
     "preact": "^10.17.1",
     "valtio": "^1.11.2"
   },
