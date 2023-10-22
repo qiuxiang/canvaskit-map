@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "core-build": "vite build packages/core",
-    "core-dev": "vite build packages/core --emptyOutDir false -w",
-    "react-build": "vite build packages/react",
-    "react-dev": "vite build packages/react --emptyOutDir false -w",
+    "core-build": "vite build packages/core --sourcemap",
+    "core-dev": "pnpm run core-build --emptyOutDir false -w",
+    "react-build": "vite build packages/react --sourcemap",
+    "react-dev": "pnpm run react-build --emptyOutDir false -w",
     "example-build": "vite build packages/example",
     "example-dev": "vite packages/example --host",
     "example-react-build": "vite build packages/example-react",

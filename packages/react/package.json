@@ -1,11 +1,16 @@
 {
   "name": "@canvaskit-map/react",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "7c00 <i@7c00.cc>",
-  "main": "dist",
-  "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qiuxiang/canvaskit-map/tree/main/packages/react"
+  },
+  "type": "module",
+  "main": "dist",
   "files": [
+    "src",
     "dist"
   ],
   "dependencies": {

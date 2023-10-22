@@ -1,11 +1,16 @@
 {
   "name": "@canvaskit-map/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "7c00 <i@7c00.cc>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qiuxiang/canvaskit-map/tree/main/packages/core"
+  },
   "type": "module",
   "main": "dist",
-  "license": "MIT",
   "files": [
+    "src/",
     "dist/"
   ],
   "dependencies": {

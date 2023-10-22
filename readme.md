@@ -29,9 +29,9 @@ map.addLayer(
 
 [试一试](https://code.juejin.cn/pen/7287881209227509821)
 
-## React 支持
+## React 组件
 
-react 组件名与 core 接口保持一致，例如 `<CanvaskitMap>` 组件对应
+react 组件与 core 接口保持一致，例如 `<CanvaskitMap>` 组件对应
 core 里的 `CanvaskitMap`，参数 options 对应组件的 props，各种
 Layer 也如此。
 
@@ -84,11 +84,7 @@ function Example() {
 image 的构建。
 
 ```tsx
-<MarkerLayer
-  items={[{x: 0, y: 0}]}
-  anchor={[0, 1]}
-  className="p-1"
->
+<MarkerLayer items={[{ x, y }]} anchor={[0, 1]} className="p-1">
   <div className="w-6 h-6 flex justify-center items-center rounded-full border border-solid border-white bg-gray-700">
     <img className="w-11/12 h-11/12 object-cover" src={icon} />
   </div>
@@ -97,6 +93,6 @@ image 的构建。
 
 [试一试](https://code.juejin.cn/pen/7292631576842600498)
 
-## Vue 支持
+## Vue 组件
 
 TODO
