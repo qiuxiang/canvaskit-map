@@ -4,10 +4,14 @@
     "core-dev": "pnpm run core-build --emptyOutDir false -w",
     "react-build": "vite build packages/react --sourcemap",
     "react-dev": "pnpm run react-build --emptyOutDir false -w",
+    "vue-build": "vite build packages/vue --sourcemap",
+    "vue-dev": "pnpm run vue-build --emptyOutDir false -w",
     "example-build": "vite build packages/example",
     "example-dev": "vite packages/example --host",
     "example-react-build": "vite build packages/example-react",
     "example-react-dev": "vite packages/example-react --host",
+    "example-vue-build": "vite build packages/example-vue",
+    "example-vue-dev": "vite packages/example-vue --host",
     "publish": "pnpm publish -r --no-git-checks --access public --registry https://registry.npmjs.org"
   },
   "devDependencies": {

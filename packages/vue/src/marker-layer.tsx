@@ -1,4 +1,4 @@
-import * as core from "@canvaskit-tilemap/core";
+import * as core from "@canvaskit-map/core";
 import { toCanvas } from "html-to-image";
 import {
   defineComponent,
@@ -12,22 +12,21 @@ import {
 interface MarkerLayerProps extends Omit<core.MarkerLayerOptions, "image"> {}
 
 export const MarkerLayer = defineComponent(
-  ({ items, ...props }: MarkerLayerProps, { attrs, slots }) => {
-    const tilemap = inject("tilemap") as Ref<core.Tilemap>;
+  (props: MarkerLayerProps, { attrs, slots }) => {
+    const map = inject("map") as Ref<core.CanvaskitMap>;
     const element = ref<HTMLDivElement>();
     const layer = ref<core.MarkerLayer>();
     watchEffect(() => {
-      if (tilemap?.value && !layer.value && element.value) {
+      if (map?.value && !layer.value && element.value) {
         toCanvas(element.value).then((image) => {
-          items = items.slice();
-          layer.value = new core.MarkerLayer({ ...props, image, items });
-          tilemap.value.addLayer(layer.value);
+          layer.value = new core.MarkerLayer({ ...props, image });
+          map.value.addLayer(layer.value);
         });
       }
     });
     onUnmounted(() => {
       if (layer.value) {
-        tilemap.value.removeLayer(layer.value);
+        map.value.removeLayer(layer.value);
       }
     });
     return () => (
@@ -38,5 +37,5 @@ export const MarkerLayer = defineComponent(
       </div>
     );
   },
-  { inheritAttrs: false }
+  { props: ["items", "scale", "anchor", "onClick"], inheritAttrs: false }
 );

@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
-// @ts-ignore
+import dts from "vite-plugin-dts";
 import { dependencies, peerDependencies } from "./package.json";
 
 export default defineConfig({
+  plugins: [dts()],
   build: {
     lib: {
       entry: "src/index.ts",
