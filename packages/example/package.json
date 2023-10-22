@@ -5,7 +5,7 @@
   "main": "src/api",
   "dependencies": {
     "@canvaskit-map/core": "workspace:~",
-    "canvaskit-wasm": "^0.38.2",
+    "canvaskit-wasm": "^0.39.1",
     "html-to-image": "^1.11.11"
   }
 }

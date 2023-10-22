@@ -45,7 +45,7 @@ export class MapGesture {
       restDelta: 0.001,
       onUpdate: (value) => {
         const zoom = Math.log2(lastScale) - direction[1] * value;
-        this._map._scaleTo(2 ** zoom, [event.x, event.y]);
+        this._map._scaleTo(2 ** zoom, event.x, event.y);
       },
     });
   }
@@ -57,7 +57,7 @@ export class MapGesture {
     this._lastPinchTime = timeStamp;
     const newScale = (da[0] / initial[0]) * this._initialScale;
     this._scaleVelocity = newScale - this._map._scale;
-    this._map._scaleTo(newScale, origin);
+    this._map._scaleTo(newScale, ...origin);
   }
 
   _onPinchEnd({ origin }: FullGestureState<"pinch">) {
@@ -73,7 +73,7 @@ export class MapGesture {
       restDelta: 0.005,
       onUpdate: (value) => {
         const zoom = Math.log2(this._initialScale) - direction * value;
-        this._map._scaleTo(2 ** zoom, origin);
+        this._map._scaleTo(2 ** zoom, ...origin);
       },
     });
   }
@@ -131,7 +131,7 @@ export class MapGesture {
         ease: easeInOut,
         onUpdate: (value) => {
           const zoom = Math.log2(lastScale) + value;
-          this._map._scaleTo(2 ** zoom, [event.x, event.y]);
+          this._map._scaleTo(2 ** zoom, event.x, event.y);
         },
       });
     } else {

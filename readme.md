@@ -11,7 +11,7 @@ import initCanvaskit from "canvaskit-wasm";
 const canvaskit = await initCanvaskit();
 const map = new CanvaskitMap(canvaskit, {
   element: "#map",
-  mapSize: [17408, 17408],
+  size: [17408, 17408],
   origin: [3568 + 5888, 6286 + 2048],
   maxZoom: 1,
 });
@@ -59,7 +59,7 @@ function Example() {
     <CanvaskitMap
       canvaskit={canvaskit}
       className="fixed w-full h-full left-0 top-0"
-      mapSize={[17408, 17408]}
+      size={[17408, 17408]}
       origin={[3568 - tileOffset[0], 6286 - tileOffset[1]]}
       maxZoom={1}
     >

@@ -13,13 +13,12 @@ const isSafari = navigator.userAgent.indexOf("iPhone") != -1;
 async function main() {
   const canvaskit = await initCanvaskit({
     locateFile() {
-      return "https://cdn.staticfile.org/canvaskit-wasm/0.38.2/canvaskit.wasm";
+      return "https://cdn.staticfile.org/canvaskit-wasm/0.39.1/canvaskit.wasm";
     },
   });
   const map = new CanvaskitMap(canvaskit, {
     element: "#map",
-    width: 17408,
-    height: 17408,
+    size: [17408, 17408],
     origin: [3568 + 5888, 6286 + 2048],
     maxZoom: 1,
   });

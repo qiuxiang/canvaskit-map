@@ -21,7 +21,5 @@ export const CanvaskitMap = defineComponent(
     provide("map", map);
     return () => <div ref={element}>{slots.default?.()}</div>;
   },
-  {
-    props: ["canvaskit", "width", "height", "origin", "maxZoom"],
-  }
+  { props: ["canvaskit", "size", "origin", "maxZoom"] }
 );

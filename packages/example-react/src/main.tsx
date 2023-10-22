@@ -19,7 +19,7 @@ export function Main() {
   useEffect(() => {
     initCanvaskit({
       locateFile() {
-        return "https://cdn.staticfile.org/canvaskit-wasm/0.38.2/canvaskit.wasm";
+        return "https://cdn.staticfile.org/canvaskit-wasm/0.39.1/canvaskit.wasm";
       },
     }).then((canvaskit) => {
       setCanvaskit(canvaskit);
@@ -41,8 +41,7 @@ export function Main() {
     <CanvaskitMap
       canvaskit={canvaskit}
       className="fixed w-full h-full left-0 top-0"
-      width={17408}
-      height={17408}
+      size={[17408, 17408]}
       origin={[3568 - tileOffset[0], 6286 - tileOffset[1]]}
       maxZoom={1}
       onClick={({ markerItem }) => {

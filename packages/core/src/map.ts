@@ -1,10 +1,4 @@
-import {
-  CanvasKit,
-  GrDirectContext,
-  InputPoint,
-  Point,
-  Surface,
-} from "canvaskit-wasm";
+import { CanvasKit, GrDirectContext, Surface } from "canvaskit-wasm";
 import { debounceTime, Observable } from "rxjs";
 import { MapGesture } from "./gesture";
 import { Layer } from "./layer";
@@ -12,7 +6,7 @@ import { MarkerItem, MarkerLayer } from "./marker-layer";
 import { alongSize, rectFromLTWH } from "./utils";
 
 export interface MapClickEvent {
-  coordinate: InputPoint;
+  coordinate: number[];
   markerLayer?: MarkerLayer;
   markerItem?: MarkerItem;
 }
@@ -24,19 +18,14 @@ export interface MapOptions {
   element: string | HTMLElement;
 
   /**
-   * 地图宽度，单位像素
+   * 地图大小，单位像素
    */
-  width: number;
-
-  /**
-   * 地图宽度，单位像素
-   */
-  height: number;
+  size: number[];
 
   /**
    * 地图原点
    */
-  origin: InputPoint;
+  origin: number[];
 
   /**
    * 最大缩放级别，默认 0
@@ -63,14 +52,11 @@ export class CanvaskitMap {
   _dirty = false;
   _initialized = false;
 
-  _mapSize = new Float32Array(2);
-  _size = new Float32Array(2);
-  _offset = new Float32Array(2);
+  _size = [0, 0];
+  _offset = [0, 0];
   _scale = 0;
 
   constructor(public canvaskit: CanvasKit, options: MapOptions) {
-    this._mapSize[0] = options.width;
-    this._mapSize[1] = options.height;
     this._options = {
       ...options,
       maxZoom: options.maxZoom ?? 0,
@@ -131,8 +117,8 @@ export class CanvaskitMap {
     this._size[0] = width;
     this._size[1] = height;
     const minScale = Math.max(
-      this._size[0] / this._mapSize[0],
-      this._size[1] / this._mapSize[1]
+      this._size[0] / this._options.size[0],
+      this._size[1] / this._options.size[1]
     );
     const minZoom = Math.log2(minScale);
 
@@ -147,7 +133,7 @@ export class CanvaskitMap {
       this._options.onReady?.(this);
     } else if (this._minZoom != minZoom) {
       this._minZoom = minZoom;
-      this._scaleTo(this._scale, [this._size[0] / 2, this._size[1] / 2]);
+      this._scaleTo(this._scale, this._size[0] / 2, this._size[1] / 2);
     }
     this.draw();
   }
@@ -184,7 +170,7 @@ export class CanvaskitMap {
       const scale = markerLayer.options.scale! / this._scale;
       const width = markerLayer._image.width() * scale;
       const height = markerLayer._image.height() * scale;
-      const anchor = alongSize(markerLayer.options.anchor!, [width, height]);
+      const anchor = alongSize(markerLayer.options.anchor!, width, height);
       for (const item of markerLayer.options.items) {
         const left = item.x - anchor[0];
         const top = item.y - anchor[1];
@@ -253,14 +239,14 @@ export class CanvaskitMap {
   /**
    * 按原点缩放
    */
-  _scaleTo(newScale: number, origin: InputPoint) {
+  _scaleTo(newScale: number, x: number, y: number) {
     const { _offset, _scale } = this;
     newScale = this._newScale(newScale);
     const ratio = (newScale - _scale) / _scale;
     this._scale = newScale;
     this._setOffset(
-      _offset[0] + (origin[0] + _offset[0]) * ratio,
-      _offset[1] + (origin[1] + _offset[1]) * ratio
+      _offset[0] + (x + _offset[0]) * ratio,
+      _offset[1] + (y + _offset[1]) * ratio
     );
   }
 
@@ -268,9 +254,9 @@ export class CanvaskitMap {
    * 设置 offset，新的 offset 不会超出边界
    */
   _setOffset(x: number, y: number) {
-    const { _size, _mapSize, _offset, _scale } = this;
-    const maxX = _mapSize[0] * _scale - _size[0];
-    const maxY = _mapSize[1] * _scale - _size[1];
+    const { _size, _options, _offset, _scale } = this;
+    const maxX = _options.size[0] * _scale - _size[0];
+    const maxY = _options.size[1] * _scale - _size[1];
     _offset[0] = Math.max(Math.min(x, maxX), 0);
     _offset[1] = Math.max(Math.min(y, maxY), 0);
     this.draw();
@@ -280,23 +266,21 @@ export class CanvaskitMap {
   /**
    * 地图坐标转 offset
    */
-  toOffset(x: number, y: number, scale = this._scale): Point {
-    const offset = new Float32Array(2);
-    offset[0] = (x + this._options.origin[0]) * scale;
-    offset[1] = (y + this._options.origin[1]) * scale;
-    return offset;
+  toOffset(x: number, y: number, scale = this._scale) {
+    return [
+      (x + this._options.origin[0]) * scale,
+      (y + this._options.origin[1]) * scale,
+    ];
   }
 
   /**
    * offset 转地图坐标
    */
-  toCoordinate(x: number, y: number): Point {
-    const coordinate = new Float32Array(2);
-    coordinate[0] =
-      (x + this._offset[0]) / this._scale - this._options.origin[0];
-    coordinate[1] =
-      (y + this._offset[1]) / this._scale - this._options.origin[1];
-    return coordinate;
+  toCoordinate(x: number, y: number) {
+    return [
+      (x + this._offset[0]) / this._scale - this._options.origin[0],
+      (y + this._offset[1]) / this._scale - this._options.origin[1],
+    ];
   }
 
   get zoom() {

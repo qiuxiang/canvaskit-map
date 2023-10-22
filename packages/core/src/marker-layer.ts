@@ -1,4 +1,4 @@
-import { Canvas, Image, InputPoint, Paint, Point } from "canvaskit-wasm";
+import { Canvas, Image, Paint } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
 import { makeRSXform } from "./utils";
 
@@ -15,7 +15,7 @@ export interface MarkerLayerOptions<T extends MarkerItem = MarkerItem>
    * 缩放，默认取 1 / devicePixelRatio
    */
   scale?: number;
-  anchor?: InputPoint;
+  anchor?: number[];
   onClick?: (markerItem: T) => void;
 }
 
@@ -62,8 +62,8 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
     const width = this._image.width();
     const height = this._image.height();
     const _anchor = alongSize(anchor!, width, height);
-    let rects = new Float32Array(4 * items.length);
-    let xforms = new Float32Array(4 * items.length);
+    let rects = [];
+    let xforms = [];
     let index = 0;
     for (const item of items) {
       const offset = this.map!.toOffset(item.x, item.y);
@@ -83,11 +83,8 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
   }
 }
 
-function alongSize(align: InputPoint, width: number, height: number): Point {
+function alongSize(align: number[], width: number, height: number) {
   const centerX = width / 2;
   const centerY = height / 2;
-  const offset = new Float32Array(2);
-  offset[0] = centerX + align[0] * centerX;
-  offset[1] = -centerY - align[1] * centerY;
-  return offset;
+  return [centerX + align[0] * centerX, -centerY - align[1] * centerY];
 }

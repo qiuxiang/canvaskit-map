@@ -1,11 +1,11 @@
-import { Canvas, Image, InputPoint, InputRect, Paint } from "canvaskit-wasm";
+import { Canvas, Image, Paint } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
 import { overlays, rectFromLTWH } from "./utils";
 
 export interface ImageLayerOptions extends LayerOptions {
   image: CanvasImageSource;
   opacity?: number;
-  bounds: InputPoint;
+  bounds: number[];
 }
 
 export class ImageLayer extends Layer<ImageLayerOptions> {

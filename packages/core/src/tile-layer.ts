@@ -47,8 +47,8 @@ export class TileLayer extends Layer<TileLayerOptions> {
     tileSize = tileSize! * Math.pow(2, level);
     const offsetX = Math.floor(offset![0] / tileSize);
     const offsetY = Math.floor(offset![1] / tileSize);
-    const cols = safeCeil(this.map!._mapSize[0] / tileSize);
-    const rows = safeCeil(this.map!._mapSize[1] / tileSize);
+    const cols = safeCeil(this.map!._options.size[0] / tileSize);
+    const rows = safeCeil(this.map!._options.size[1] / tileSize);
     for (var row = 0; row < rows; row += 1) {
       for (var col = 0; col < cols; col += 1) {
         const x = col + offsetX;
