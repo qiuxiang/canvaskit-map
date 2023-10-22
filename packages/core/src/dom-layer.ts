@@ -7,7 +7,6 @@ export interface DomLayerOptions extends LayerOptions {
 }
 
 export class DomLayer extends Layer<DomLayerOptions> {
-  /** @internal */
   _element?: HTMLElement;
 
   constructor(options: DomLayerOptions) {
@@ -55,7 +54,7 @@ export class DomLayer extends Layer<DomLayerOptions> {
   }
 
   draw() {
-    const position = this.map!._toOffset(this._options.x, this._options.y);
+    const position = this.map!.toOffset(this._options.x, this._options.y);
     position[0] -= this.map!._offset[0];
     position[1] -= this.map!._offset[1];
     this._element!.style.transform = `translate(${position[0]}px, ${position[1]}px)`;

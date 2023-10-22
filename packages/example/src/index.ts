@@ -18,7 +18,8 @@ async function main() {
   });
   const map = new CanvaskitMap(canvaskit, {
     element: "#map",
-    mapSize: [17408, 17408],
+    width: 17408,
+    height: 17408,
     origin: [3568 + 5888, 6286 + 2048],
     maxZoom: 1,
   });

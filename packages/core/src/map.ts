@@ -1,4 +1,10 @@
-import { CanvasKit, GrDirectContext, Surface } from "canvaskit-wasm";
+import {
+  CanvasKit,
+  GrDirectContext,
+  InputPoint,
+  Point,
+  Surface,
+} from "canvaskit-wasm";
 import { debounceTime, Observable } from "rxjs";
 import { MapGesture } from "./gesture";
 import { Layer } from "./layer";
@@ -6,7 +12,7 @@ import { MarkerItem, MarkerLayer } from "./marker-layer";
 import { alongSize, rectFromLTWH } from "./utils";
 
 export interface MapClickEvent {
-  coordinate: [number, number];
+  coordinate: InputPoint;
   markerLayer?: MarkerLayer;
   markerItem?: MarkerItem;
 }
@@ -18,14 +24,19 @@ export interface MapOptions {
   element: string | HTMLElement;
 
   /**
-   * 地图原始尺寸
+   * 地图宽度，单位像素
    */
-  mapSize: [number, number];
+  width: number;
+
+  /**
+   * 地图宽度，单位像素
+   */
+  height: number;
 
   /**
    * 地图原点
    */
-  origin: [number, number];
+  origin: InputPoint;
 
   /**
    * 最大缩放级别，默认 0
@@ -38,38 +49,28 @@ export interface MapOptions {
 }
 
 export class CanvaskitMap {
-  /** @internal */
   _options: MapOptions;
-  /** @internal */
   _element: HTMLElement;
-  /** @internal */
   _canvasElement: HTMLCanvasElement;
   /**
    * constructor 里调用 resize 时初始化
-   * @internal
    */
   _surface = null as unknown as Surface;
-  /** @internal */
   _context: GrDirectContext;
-  /** @internal */
   _gesture: MapGesture;
-  /** @internal */
   _minZoom = 0;
-  /** @internal */
   _layers = new Set<Layer>();
-  /** @internal */
   _dirty = false;
-  /** @internal */
   _initialized = false;
 
-  /** @internal */
-  _size = [0, 0];
-  /** @internal */
-  _offset = [0, 0];
-  /** @internal */
+  _mapSize = new Float32Array(2);
+  _size = new Float32Array(2);
+  _offset = new Float32Array(2);
   _scale = 0;
 
   constructor(public canvaskit: CanvasKit, options: MapOptions) {
+    this._mapSize[0] = options.width;
+    this._mapSize[1] = options.height;
     this._options = {
       ...options,
       maxZoom: options.maxZoom ?? 0,
@@ -90,46 +91,53 @@ export class CanvaskitMap {
 
     this._gesture = new MapGesture(this);
     this._initResizeObserver();
-    this._resize([this._element.clientWidth, this._element.clientHeight]);
+    this._resize(this._element.clientWidth, this._element.clientHeight);
     this._drawFrame();
   }
 
-  /** @internal */
   _initResizeObserver() {
-    const observable = new Observable<[number, number]>((subscriber) => {
+    const observable = new Observable<number[]>((subscriber) => {
       new ResizeObserver(([entry]) => {
         const { width, height } = entry.contentRect;
         subscriber.next([Math.floor(width), Math.floor(height)]);
       }).observe(this._element);
     });
     observable.pipe(debounceTime(500)).subscribe((size) => {
-      this._resize(size);
+      this._resize(size[0], size[1]);
     });
   }
 
-  /** @internal */
-  _resize(size: [number, number]) {
-    if (this._size[0] == size[0] && this._size[1] == size[1]) {
+  /**
+   * 重新设置画布大小，通常由 resizeObserver 调用，不需要主动调用
+   */
+  _resize(width: number, height: number) {
+    if (this._size[0] == width && this._size[1] == height) {
       return;
     }
 
-    this._canvasElement.width = size[0] * devicePixelRatio;
-    this._canvasElement.height = size[1] * devicePixelRatio;
-    this._canvasElement.style.width = `${size[0]}px`;
-    this._canvasElement.style.height = `${size[1]}px`;
+    // canvas resize，重新构造 surface
+    this._canvasElement.width = width * devicePixelRatio;
+    this._canvasElement.height = height * devicePixelRatio;
+    this._canvasElement.style.width = `${width}px`;
+    this._canvasElement.style.height = `${height}px`;
     this._surface = this.canvaskit.MakeOnScreenGLSurface(
       this._context,
-      size[0] * devicePixelRatio,
-      size[1] * devicePixelRatio,
+      width * devicePixelRatio,
+      height * devicePixelRatio,
       this.canvaskit.ColorSpace.SRGB
     )!;
-    this._size = size;
+
+    // 重新计算 minScale
+    this._size[0] = width;
+    this._size[1] = height;
     const minScale = Math.max(
-      this._size[0] / this._options.mapSize[0],
-      this._size[1] / this._options.mapSize[1]
+      this._size[0] / this._mapSize[0],
+      this._size[1] / this._mapSize[1]
     );
     const minZoom = Math.log2(minScale);
+
     if (this._minZoom == 0) {
+      // 第一次 resize，也标志着初始化完成
       this._scale = minScale;
       this._minZoom = minZoom;
       for (const layer of this._layers) {
@@ -144,9 +152,14 @@ export class CanvaskitMap {
     this.draw();
   }
 
-  /** @internal */
+  /**
+   * 由 gesture 触发，处理点击事件
+   *
+   * TODO: 目前只处理了 marker 的点击事件，更合理的设计应该是每个 Laryer
+   * 都有可选的点击事件处理方法，由 Map 统一调用。
+   */
   _onClick(x: number, y: number) {
-    const coordinate = this._toCoordinate(x, y);
+    const coordinate = this.toCoordinate(x, y);
     const marker = this._findMarker(coordinate[0], coordinate[1]);
     this._options.onClick?.({
       coordinate,
@@ -155,7 +168,11 @@ export class CanvaskitMap {
     });
   }
 
-  /** @internal */
+  /**
+   * 查询点击的位置是否有 marker
+   *
+   * TODO: 这个方法放在 MarkerLayer 里更合理，暂时先这样
+   */
   _findMarker(x: number, y: number): [MarkerLayer, MarkerItem] | undefined {
     const markerLayers = [...this._layers].filter(
       (i) => i instanceof MarkerLayer && !i.options.hidden
@@ -198,13 +215,12 @@ export class CanvaskitMap {
     this.draw();
   }
 
-  /** @internal */
   _drawFrame() {
     if (this._dirty) {
       const canvas = this._surface.getCanvas();
       // 重置 matrix
       canvas.concat(this.canvaskit.Matrix.invert(canvas.getTotalMatrix())!);
-      // 因为 scale 有原点，必须先 scale 后 translate
+      // scale 依赖原点，必须先 scale 后 translate
       canvas.scale(devicePixelRatio, devicePixelRatio);
       canvas.translate(-this._offset[0], -this._offset[1]);
       const layers = [...this._layers].filter(
@@ -224,7 +240,9 @@ export class CanvaskitMap {
     this._dirty = true;
   }
 
-  /** @internal */
+  /**
+   * 返回 minZoom，maxZoom 限制下的新 scale
+   */
   _newScale(newScale: number) {
     const { _minZoom, _options } = this;
     let zoom = Math.log2(newScale);
@@ -232,45 +250,53 @@ export class CanvaskitMap {
     return 2 ** zoom;
   }
 
-  /** @internal */
-  _scaleTo(newScale: number, origin: [number, number]) {
+  /**
+   * 按原点缩放
+   */
+  _scaleTo(newScale: number, origin: InputPoint) {
     const { _offset, _scale } = this;
     newScale = this._newScale(newScale);
     const ratio = (newScale - _scale) / _scale;
     this._scale = newScale;
-    this._setOffset([
+    this._setOffset(
       _offset[0] + (origin[0] + _offset[0]) * ratio,
-      _offset[1] + (origin[1] + _offset[1]) * ratio,
-    ]);
+      _offset[1] + (origin[1] + _offset[1]) * ratio
+    );
   }
 
-  /** @internal */
-  _setOffset(newOffset: [number, number]) {
-    const { _size, _options, _offset, _scale } = this;
-    const max = [
-      _options.mapSize[0] * _scale - _size[0],
-      _options.mapSize[1] * _scale - _size[1],
-    ];
-    _offset[0] = Math.max(Math.min(newOffset[0], max[0]), 0);
-    _offset[1] = Math.max(Math.min(newOffset[1], max[1]), 0);
+  /**
+   * 设置 offset，新的 offset 不会超出边界
+   */
+  _setOffset(x: number, y: number) {
+    const { _size, _mapSize, _offset, _scale } = this;
+    const maxX = _mapSize[0] * _scale - _size[0];
+    const maxY = _mapSize[1] * _scale - _size[1];
+    _offset[0] = Math.max(Math.min(x, maxX), 0);
+    _offset[1] = Math.max(Math.min(y, maxY), 0);
     this.draw();
     this._options.onMove?.();
   }
 
-  /** @internal */
-  _toOffset(x: number, y: number, scale?: number): [number, number] {
-    return [
-      (x + this._options.origin[0]) * (scale ?? this._scale),
-      (y + this._options.origin[1]) * (scale ?? this._scale),
-    ];
+  /**
+   * 地图坐标转 offset
+   */
+  toOffset(x: number, y: number, scale = this._scale): Point {
+    const offset = new Float32Array(2);
+    offset[0] = (x + this._options.origin[0]) * scale;
+    offset[1] = (y + this._options.origin[1]) * scale;
+    return offset;
   }
 
-  /** @internal */
-  _toCoordinate(x: number, y: number): [number, number] {
-    return [
-      (x + this._offset[0]) / this._scale - this._options.origin[0],
-      (y + this._offset[1]) / this._scale - this._options.origin[1],
-    ];
+  /**
+   * offset 转地图坐标
+   */
+  toCoordinate(x: number, y: number): Point {
+    const coordinate = new Float32Array(2);
+    coordinate[0] =
+      (x + this._offset[0]) / this._scale - this._options.origin[0];
+    coordinate[1] =
+      (y + this._offset[1]) / this._scale - this._options.origin[1];
+    return coordinate;
   }
 
   get zoom() {
@@ -285,7 +311,7 @@ export class CanvaskitMap {
     return this._size;
   }
 
-  get visibleRect() {
+  get rect() {
     return rectFromLTWH(
       this._offset[0],
       this._offset[1],

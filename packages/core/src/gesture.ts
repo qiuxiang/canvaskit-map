@@ -90,10 +90,10 @@ export class MapGesture {
       return;
     }
 
-    this._map._setOffset([
+    this._map._setOffset(
       this._map._offset[0] - delta[0],
-      this._map._offset[1] - delta[1],
-    ]);
+      this._map._offset[1] - delta[1]
+    );
   }
 
   _onDragEnd(state: FullGestureState<"drag">) {
@@ -108,10 +108,10 @@ export class MapGesture {
         power: 200,
         timeConstant: 200,
         onUpdate: (value) => {
-          this._map._setOffset([
+          this._map._setOffset(
             initialOffset[0] - direction[0] * value * (velocity[0] / v),
-            initialOffset[1] - direction[1] * value * (velocity[1] / v),
-          ]);
+            initialOffset[1] - direction[1] * value * (velocity[1] / v)
+          );
         },
       });
     }

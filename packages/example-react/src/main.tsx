@@ -41,7 +41,8 @@ export function Main() {
     <CanvaskitMap
       canvaskit={canvaskit}
       className="fixed w-full h-full left-0 top-0"
-      mapSize={[17408, 17408]}
+      width={17408}
+      height={17408}
       origin={[3568 - tileOffset[0], 6286 - tileOffset[1]]}
       maxZoom={1}
       onClick={({ markerItem }) => {
@@ -140,6 +141,6 @@ class MaskLayer extends Layer {
   }
 
   draw(canvas: Canvas) {
-    canvas.drawRect(this.map!.visibleRect, this._paint!);
+    canvas.drawRect(this.map!.rect, this._paint!);
   }
 }

@@ -1,18 +1,15 @@
-import { Canvas, Image, Paint } from "canvaskit-wasm";
+import { Canvas, Image, InputPoint, InputRect, Paint } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
-import { rectFromLTWH, overlays } from "./utils";
+import { overlays, rectFromLTWH } from "./utils";
 
 export interface ImageLayerOptions extends LayerOptions {
   image: CanvasImageSource;
   opacity?: number;
-  bounds: number[];
+  bounds: InputPoint;
 }
 
 export class ImageLayer extends Layer<ImageLayerOptions> {
-  /** @internal */
   _images = {} as Record<number, Image>;
-
-  /** @internal */
   _paint?: Paint;
 
   constructor(options: ImageLayerOptions) {
@@ -28,7 +25,6 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
     this._setOpacity();
   }
 
-  /** @internal */
   _setOpacity() {
     const { opacity } = this._options;
     if (opacity != undefined) {
@@ -55,7 +51,6 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
     this.map!.draw();
   }
 
-  /** @internal */
   _downscaleImage(image: HTMLCanvasElement) {
     const canvas = document.createElement("canvas");
     const canvas2d = canvas.getContext("2d")!;
@@ -76,7 +71,7 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
     if (!image) return;
 
     const { bounds } = this._options;
-    const dstOffset = this.map!._toOffset(bounds[0], bounds[1]);
+    const dstOffset = this.map!.toOffset(bounds[0], bounds[1]);
     const src = rectFromLTWH(0, 0, image.width(), image.height());
     const dst = rectFromLTWH(
       dstOffset[0],
@@ -84,7 +79,7 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
       (bounds[2] - bounds[0]) * this.map!._scale,
       (bounds[3] - bounds[1]) * this.map!._scale
     );
-    if (overlays(this.map!.visibleRect, dst)) {
+    if (overlays(this.map!.rect, dst)) {
       canvas.drawImageRect(image, src, dst, this._paint!);
     }
   }

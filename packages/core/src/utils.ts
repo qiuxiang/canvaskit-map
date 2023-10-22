@@ -1,3 +1,5 @@
+import { InputPoint, InputRect, Rect } from "canvaskit-wasm";
+
 export function safeCeil(n: number) {
   return Math.ceil(parseFloat(n.toFixed(3)));
 }
@@ -7,15 +9,20 @@ export function rectFromLTWH(
   y: number,
   width: number,
   height: number
-) {
-  return [x, y, x + width, y + height];
+): Rect {
+  const rect = new Float32Array(4);
+  rect[0] = x;
+  rect[1] = y;
+  rect[2] = x + width;
+  rect[3] = y + height;
+  return rect;
 }
 
 export function makeRSXform(
   rotation: number,
   scale: number,
-  anchor: [number, number],
-  translate: [number, number]
+  anchor: InputPoint,
+  translate: InputPoint
 ) {
   const scos = Math.cos(rotation) * scale;
   const ssin = Math.sin(rotation) * scale;
@@ -27,7 +34,7 @@ export function makeRSXform(
   ];
 }
 
-export function overlays(rect: number[], other: number[]) {
+export function overlays(rect: Rect, other: Rect) {
   if (rect[2] <= other[0] || other[2] <= rect[0]) {
     return false;
   }
@@ -38,8 +45,8 @@ export function overlays(rect: number[], other: number[]) {
 }
 
 export function alongSize(
-  align: [number, number],
-  size: [number, number]
+  align: InputPoint,
+  size: InputPoint
 ): [number, number] {
   const centerX = size[0] / 2;
   const centerY = size[1] / 2;

@@ -46,7 +46,7 @@ export class TextLayer extends Layer<TextLayerOptions> {
   }
 
   draw(canvas: Canvas) {
-    const [x, y] = this.map!._toOffset(this._options.x, this._options.y);
+    const [x, y] = this.map!.toOffset(this._options.x, this._options.y);
     if (this._paragraph) {
       canvas.drawParagraph(
         this._paragraph,

@@ -1,4 +1,4 @@
-import { Canvas, Image, Paint } from "canvaskit-wasm";
+import { Canvas, Image, InputPoint, Paint, Point } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
 import { makeRSXform } from "./utils";
 
@@ -15,17 +15,14 @@ export interface MarkerLayerOptions<T extends MarkerItem = MarkerItem>
    * 缩放，默认取 1 / devicePixelRatio
    */
   scale?: number;
-  anchor?: [number, number];
+  anchor?: InputPoint;
   onClick?: (markerItem: T) => void;
 }
 
 export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
   MarkerLayerOptions<T>
 > {
-  /** @internal */
   _paint?: Paint;
-
-  /** @internal */
   _image: Image | null = null;
 
   constructor(options: MarkerLayerOptions<T>) {
@@ -64,32 +61,33 @@ export class MarkerLayer<T extends MarkerItem = MarkerItem> extends Layer<
     const { scale, items, anchor } = this._options;
     const width = this._image.width();
     const height = this._image.height();
-    const _anchor = alongSize(anchor!, [width, height]);
-    let rects = [] as number[];
-    let xforms = [] as number[];
+    const _anchor = alongSize(anchor!, width, height);
+    let rects = new Float32Array(4 * items.length);
+    let xforms = new Float32Array(4 * items.length);
+    let index = 0;
     for (const item of items) {
-      const offset = this.map!._toOffset(item.x, item.y);
-      const i = rects.length;
-      rects[i] = 0;
-      rects[i + 1] = 0;
-      rects[i + 2] = width;
-      rects[i + 3] = height;
+      const offset = this.map!.toOffset(item.x, item.y);
+      rects[index] = 0;
+      rects[index + 1] = 0;
+      rects[index + 2] = width;
+      rects[index + 3] = height;
       const xform = makeRSXform(0, scale!, _anchor, offset);
-      xforms[i] = xform[0];
-      xforms[i + 1] = xform[1];
-      xforms[i + 2] = xform[2];
-      xforms[i + 3] = xform[3];
+      xforms[index] = xform[0];
+      xforms[index + 1] = xform[1];
+      xforms[index + 2] = xform[2];
+      xforms[index + 3] = xform[3];
+      index += 4;
     }
 
     canvas.drawAtlas(this._image, rects, xforms, this._paint!);
   }
 }
 
-function alongSize(
-  align: [number, number],
-  size: [number, number]
-): [number, number] {
-  const centerX = size[0] / 2;
-  const centerY = size[1] / 2;
-  return [centerX + align[0] * centerX, -centerY - align[1] * centerY];
+function alongSize(align: InputPoint, width: number, height: number): Point {
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const offset = new Float32Array(2);
+  offset[0] = centerX + align[0] * centerX;
+  offset[1] = -centerY - align[1] * centerY;
+  return offset;
 }
