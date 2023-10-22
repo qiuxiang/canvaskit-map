@@ -48,7 +48,7 @@ export class DomLayer extends Layer<DomLayerOptions> {
     if (options.hidden) {
       this._element!.style.zIndex = "-1";
     } else {
-      this._element!.style.zIndex = "0";
+      this._element!.style.zIndex = `${this.zIndex}`;
     }
     this._options = options;
   }
