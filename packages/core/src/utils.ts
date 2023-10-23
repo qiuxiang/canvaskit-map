@@ -46,9 +46,7 @@ export function alongSize(align: number[], width: number, height: number) {
 export type Task = () => Promise<void>;
 
 export class TaskQueue {
-  /** @internal */
   _queue = [] as Task[];
-  /** @internal */
   _running = false;
 
   async run(task: Task) {
@@ -59,7 +57,9 @@ export class TaskQueue {
         const task = this._queue.shift()!;
         try {
           await task();
-        } catch (_) {}
+        } catch (e) {
+          console.error(e);
+        }
       }
       this._running = false;
     }

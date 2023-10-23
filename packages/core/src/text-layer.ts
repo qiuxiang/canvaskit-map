@@ -21,10 +21,7 @@ const _queue = new TaskQueue();
 const _cache = {} as Record<string, FontMgr>;
 
 export class TextLayer extends Layer<TextLayerOptions> {
-  /** @internal */
   _paint?: Paint;
-
-  /** @internal */
   _paragraph?: Paragraph;
 
   async init() {
@@ -36,6 +33,7 @@ export class TextLayer extends Layer<TextLayerOptions> {
         fontMgr = this.canvaskit!.FontMgr.FromData(
           await response.arrayBuffer()
         )!;
+        _cache[this._options.fontUrl] = fontMgr;
       }
       const style = new this.canvaskit!.ParagraphStyle(this._options.style);
       const builder = this.canvaskit!.ParagraphBuilder.Make(style, fontMgr);
