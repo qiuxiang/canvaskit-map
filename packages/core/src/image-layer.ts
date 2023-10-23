@@ -1,15 +1,15 @@
 import { Canvas, Image, Paint } from "canvaskit-wasm";
 import { Layer, LayerOptions } from "./layer";
-import { overlays, rectFromLTWH } from "./utils";
+import { rectFromLTWH } from "./utils";
 
 export interface ImageLayerOptions extends LayerOptions {
-  image: CanvasImageSource;
+  image: CanvasImageSource | string;
   opacity?: number;
   bounds: number[];
 }
 
 export class ImageLayer extends Layer<ImageLayerOptions> {
-  _images = {} as Record<number, Image>;
+  _image?: Image;
   _paint?: Paint;
 
   constructor(options: ImageLayerOptions) {
@@ -35,52 +35,35 @@ export class ImageLayer extends Layer<ImageLayerOptions> {
   async init() {
     this._paint = new this.canvaskit!.Paint();
     const { image } = this._options;
-    if (image instanceof HTMLImageElement && !image.width) {
-      await new Promise((resolve) => {
-        image.addEventListener("load", resolve);
-      });
-    }
-    let _image = image as HTMLCanvasElement;
-    this._images[0] = this.canvaskit!.MakeImageFromCanvasImageSource(image);
-    for (let zoom = -1; zoom > this.map!._minZoom; zoom -= 1) {
-      _image = this._downscaleImage(_image);
-      this._images[zoom] =
-        this.canvaskit!.MakeImageFromCanvasImageSource(_image);
+    if (typeof image == "string") {
+      const response = await fetch(image);
+      const bitmap = await createImageBitmap(await response.blob());
+      this._image = this.canvaskit!.MakeImageFromCanvasImageSource(bitmap);
+    } else {
+      if (image instanceof HTMLImageElement && !image.width) {
+        await new Promise((resolve, reject) => {
+          image.addEventListener("load", resolve);
+          image.addEventListener("error", reject);
+        });
+      }
+      this._image = this.canvaskit!.MakeImageFromCanvasImageSource(image);
     }
     this._setOpacity();
     this.map!.draw();
   }
 
-  _downscaleImage(image: HTMLCanvasElement) {
-    const canvas = document.createElement("canvas");
-    const canvas2d = canvas.getContext("2d")!;
-    canvas.width = image.width / 2;
-    canvas.height = image.height / 2;
-    if (canvas.width == 0 || canvas.height == 0) {
-      return image;
-    }
-    canvas2d.drawImage(image, 0, 0, canvas.width, canvas.height);
-    return canvas;
-  }
-
   draw(canvas: Canvas) {
-    let zoom = this.map!.zoom + 1;
-    zoom = Math.ceil(Math.max(Math.min(zoom, 0), this.map!._minZoom));
-
-    const image = this._images[zoom] ?? Object.values(this._images).pop();
-    if (!image) return;
+    if (!this._image) return;
 
     const { bounds } = this._options;
     const dstOffset = this.map!.toOffset(bounds[0], bounds[1]);
-    const src = rectFromLTWH(0, 0, image.width(), image.height());
+    const src = rectFromLTWH(0, 0, this._image.width(), this._image.height());
     const dst = rectFromLTWH(
       dstOffset[0],
       dstOffset[1],
       (bounds[2] - bounds[0]) * this.map!._scale,
       (bounds[3] - bounds[1]) * this.map!._scale
     );
-    if (overlays(this.map!.rect, dst)) {
-      canvas.drawImageRect(image, src, dst, this._paint!);
-    }
+    canvas.drawImageRect(this._image, src, dst, this._paint!);
   }
 }
