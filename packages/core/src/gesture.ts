@@ -10,6 +10,7 @@ export class MapGesture {
   _lastWheelTime = 0;
   _lastClickTime = 0;
   _lastDragTime = 0;
+  _lastOrigin = [0, 0];
 
   _scaleAnimation = inertia({});
   _offsetAnimation = [inertia({}), inertia({})];
@@ -19,7 +20,10 @@ export class MapGesture {
     this._map = map;
     new Gesture(map._element, {
       onWheel: this._onWheel.bind(this),
-      onPinchStart: () => (this._initialScale = this._map._scale),
+      onPinchStart: ({ origin }) => {
+        this._initialScale = this._map._scale;
+        this._lastOrigin = origin;
+      },
       onPinch: this._onPinch.bind(this),
       onPinchEnd: this._onPinchEnd.bind(this),
       onDragStart: this._onDragStart.bind(this),
@@ -57,7 +61,12 @@ export class MapGesture {
     this._lastPinchTime = timeStamp;
     const newScale = (da[0] / initial[0]) * this._initialScale;
     this._scaleVelocity = newScale - this._map._scale;
+    this._map._setOffset(
+      this._map.offset[0] - (origin[0] - this._lastOrigin[0]),
+      this._map.offset[1] - (origin[1] - this._lastOrigin[1])
+    );
     this._map._scaleTo(newScale, ...origin);
+    this._lastOrigin = origin;
   }
 
   _onPinchEnd({ origin }: FullGestureState<"pinch">) {
