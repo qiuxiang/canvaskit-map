@@ -13,13 +13,15 @@ export class MapGesture {
   _lastOrigin = [0, 0];
 
   _scaleAnimation = inertia({});
-  _offsetAnimation = [inertia({}), inertia({})];
+  _offsetAnimation = inertia({});
   _scaleVelocity = 0;
 
   constructor(map: CanvaskitMap) {
     this._map = map;
     new Gesture(map._element, {
+      onWheelStart: this._onWheelStart.bind(this),
       onWheel: this._onWheel.bind(this),
+      onWheelEnd: this._onWheelEnd.bind(this),
       onPinchStart: ({ origin }) => {
         this._initialScale = this._map._scale;
         this._lastOrigin = origin;
@@ -33,22 +35,33 @@ export class MapGesture {
     });
   }
 
-  _onWheel(state: FullGestureState<"wheel">) {
-    const { direction, event, timeStamp, velocity } = state;
-    if (timeStamp == this._lastWheelTime) return;
+  _onWheelStart(state: FullGestureState<"wheel">) {
+    this._offsetAnimation?.stop();
+  }
 
-    this._offsetAnimation[0]?.stop();
-    this._offsetAnimation[1]?.stop();
+  _onWheel({ direction, event, velocity }: FullGestureState<"wheel">) {
     this._scaleAnimation?.stop();
-    this._lastWheelTime = timeStamp;
-    const lastScale = this._map._scale;
-    const v = Math.max(velocity[1], 0.01);
+    const lastZoom = Math.log2(this._map._scale);
     this._scaleAnimation = inertia({
-      velocity: Math.log2(1 + Math.abs(v) / 10),
-      timeConstant: 50,
+      velocity: velocity[1] + 1,
       restDelta: 0.001,
       onUpdate: (value) => {
-        const zoom = Math.log2(lastScale) - direction[1] * value;
+        const zoom = lastZoom - direction[1] * value;
+        this._map._scaleTo(2 ** zoom, event.x, event.y);
+      },
+    });
+  }
+
+  _onWheelEnd({ velocity, direction, event }: FullGestureState<"wheel">) {
+    this._scaleAnimation?.stop();
+    const initial = Math.log2(this._map._scale);
+    this._scaleAnimation = inertia({
+      velocity: Math.log2(velocity[1] + 1.2),
+      power: 0.2,
+      timeConstant: 100,
+      restDelta: 0.001,
+      onUpdate: (value) => {
+        const zoom = initial - direction[1] * value;
         this._map._scaleTo(2 ** zoom, event.x, event.y);
       },
     });
@@ -88,8 +101,7 @@ export class MapGesture {
   }
 
   _onDragStart() {
-    this._offsetAnimation[0]?.stop();
-    this._offsetAnimation[1]?.stop();
+    this._offsetAnimation?.stop();
     this._scaleAnimation?.stop();
   }
 
@@ -112,7 +124,7 @@ export class MapGesture {
     const initialOffset = [...this._map._offset];
     const v = Math.sqrt(velocity[0] ** 2 + velocity[1] ** 2);
     if (v != 0) {
-      this._offsetAnimation[0] = inertia({
+      this._offsetAnimation = inertia({
         velocity: v,
         power: 200,
         timeConstant: 200,
