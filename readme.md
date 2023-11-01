@@ -2,6 +2,8 @@
 
 基于 canvaskit，高性能、丝滑的平面地图引擎。
 
+实际案例：https://github.com/qiuxiang/ky-genshin-map
+
 ## 快速上手
 
 ```typescript
